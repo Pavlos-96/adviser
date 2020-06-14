@@ -9,9 +9,9 @@ def get_data(file):
 
 class Sentence:
     def __init__(self, string, pred_domain="", gold_domain=""):
-        self.string = string
-        self.pred_domain = pred_domain
-        self.gold_domain = gold_domain
+        self.string = string # "I want wifi"
+        self.pred_domain = pred_domain # "Train"
+        self.gold_domain = gold_domain # "Hotel"
 
 
 class Dialogue:
@@ -57,11 +57,12 @@ class Comparison:
         self.accuracy = accuracy
         self.fscore = fscore
 
+#[Train{'TP': 99, 'FP': 34, 'FN': 0, 'TN': 0},Hotel{'TP': 0, 'FP': 0, 'FN': 0, 'TN': 0},Attraction{'TP': 0, 'FP': 0, 'FN': 0, 'TN': 0}
+
     def get_comparison(self, corpus):
         # for each domain find out the TPs FPs and FNs and save them in the self.comparison dictionary
         for dialogue in corpus.processed_corpus:
             for sentence in dialogue.sentences:
-                print(sentence.gold_domain, sentence.pred_domain)
                 if sentence.gold_domain == self.domain and sentence.pred_domain == self.domain:  # TP
                     self.comparison['TP'] += 1
                 elif sentence.gold_domain != self.domain and sentence.pred_domain == self.domain:  # FP
@@ -70,6 +71,7 @@ class Comparison:
                     self.comparison['FN'] += 1
                 elif sentence.gold_domain != self.domain and sentence.pred_domain != self.domain:  #TN
                     self.comparison['TN'] += 1
+#corpus[dialogue1[sentence1,sentence2], d2 [sentence1, sentence2]]
 
     def get_precision(self):
         self.precision = self.comparison['TP']/(self.comparison['TP'] + self.comparison['FP'])
@@ -86,7 +88,7 @@ class Comparison:
 
 
 class Evaluator:  # creates evaluation object+calculates macro/micro, no input
-    def __init__(self, results=None, macro_fscore="", micro_fscore=""):
+    def __init__(self, results=None, macro_fscore="", micro_fscore="", accuracy=""):
         if results is None:
             results = []
         self.results = results
@@ -94,6 +96,7 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
         # e.g [NNresult_obj, VBresult_obj,...]
         self.macro_fscore = macro_fscore
         self.micro_fscore = micro_fscore
+        self.accuracy = accuracy
 
     def evaluation(self, corpus_obj):
         # create objects of class Comparison(), compute P, R, F1 for each comparison_obj
@@ -113,6 +116,7 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
         self.get_micro_fscore()
         # compute macro and micro fscore and save inside a variable
 
+
     def get_macro_fscore(self):  # average fscores
         add_fscores = 0
         for result in self.results:
@@ -121,137 +125,32 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
 
     def get_micro_fscore(self): # average TPs, FPs, FNs and TNs and compute P, R, F1
         add_results = {'TP': 0, 'FP': 0, 'FN': 0, 'TN': 0}
+        total = 0
         for result in self.results:  # adds all TPs... together
             add_results['TP'] += result.comparison['TP']
             add_results['FP'] += result.comparison['FP']
             add_results['FN'] += result.comparison['FN']
             add_results['TN'] += result.comparison['TN']
+            total = result.comparison['TP']+result.comparison["TN"]+result.comparison['FN']+result.comparison["FP"]
 
         if add_results['TP'] == 0: # if TP=0, then F1=0
             self.micro_fscore = 0
         else:
             precision = add_results['TP']/(add_results['TP'] + add_results['FP'])
             recall = add_results['TP']/(add_results['TP'] + add_results['FN'])
+            self.accuracy = add_results['TP']/total
             self.micro_fscore = (2 * precision * recall)/(precision + recall)
 
 
 file = "clean_domain_data.json"
-get_data(file)
-test = {
-    "PMUL1635.json": [
-        [
-            "I need to book a hotel in the east that has 4 stars.  ",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "That doesn't matter as long as it has free wifi and parking.",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "Could you book the Wartworth for one night, 1 person?",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "Friday and Can you book it for me and get a reference number ?",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "I am looking to book a train that is leaving from Cambridge to Bishops Stortford on Friday. ",
-            [
-                "Train"
-            ]
-        ],
-        [
-            "I want to get there by 19:45 at the latest. ",
-            [
-                "Train"
-            ]
-        ],
-        [
-            "Yes please. I also need the travel time, departure time, and price.",
-            [
-                "Train"
-            ]
-        ],
-        [
-            "Yes. Sorry, but suddenly my plans changed. Can you change the Wartworth booking to Monday for 3 people and 4 nights?",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "Thank you very much, goodbye.",
-            [
-                "Hotel"
-            ]
-        ]
-    ],
-    "MUL2168.json": [
-        [
-            "Hi, I'm looking for a train that is going to cambridge and arriving there by 20:45, is there anything like that?",
-            [
-                "Train"
-            ]
-        ],
-        [
-            "I am departing from birmingham new street.",
-            [
-                "Train"
-            ]
-        ],
-        [
-            "I would like to leave on wednesday",
-            [
-                "Train"
-            ]
-        ],
-        [
-            "That will, yes. Please make a booking for 5 people please.",
-            [
-                "Train"
-            ]
-        ],
-        [
-            "Thanks so much. I would also need a place to say. I am looking for something with 4 stars and has free wifi. ",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "That sounds great, could you make a booking for me please?",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "Please book it for Wednesday for 5 people and 5 nights, please.",
-            [
-                "Hotel"
-            ]
-        ],
-        [
-            "Thank you, goodbye",
-            [
-                "Hotel"
-            ]
-        ]
-    ]
-}
-
-corpus = Corpus(test)
+file = get_data(file)
+corpus = Corpus(file)
 corpus.create_objects()
+
 for dialogue in corpus.processed_corpus:
     for sentence in dialogue.sentences:
         sentence.pred_domain = "Hotel"
 evaluation = Evaluator()
 evaluation.evaluation(corpus)
-print("micro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore)
-print(corpus.all_tags)
+print("micro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore, "accuracy: ", evaluation.accuracy)
+
