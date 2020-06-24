@@ -73,7 +73,12 @@ class DomainTracker(Service):
             user_utterance = gen_user_utterance.strip().lower()
 
         # perform keyword matching to see if any domains are explicitely made active
-        active_domains = [d for d in self.domains if d.get_keyword() in user_utterance]
+        # active_domains = [d for d in self.domains if d.get_keyword() in user_utterance]
+        active_domains = []
+        for d in self.domains:
+            for keyword in d.get_keyword():
+                if keyword in user_utterance:
+                    active_domains.append(d)
 
         # Even if no domain has been specified, we should be able to exit
         if "bye" in user_utterance and not self.current_domain:
@@ -83,7 +88,7 @@ class DomainTracker(Service):
         elif active_domains:
             out_key = f"user_utterance/{active_domains[0].get_domain_name()}"
             self.current_domain = active_domains[0]
-            return {out_key: user_utterance}
+            return {out_key: user_utterance, "predicted domain: ": self.current_domain.get_domain_name()}
 
         # if no domain is explicitely mentioned, assume the last one is still active
         elif self.current_domain:

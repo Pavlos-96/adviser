@@ -1,4 +1,12 @@
 import ast
+import sys
+sys.path.insert(0, "/Users/pavlosmusenidis/Desktop/Computerlinguistik/2.Semester/SpokenDialogueSystems/adviser/adviser")
+
+from services.service import Service, PublishSubscribe, DialogSystem
+from domain_tracker import DomainTracker
+from utils.domain import Domain
+from utils.domain.jsonlookupdomain import JSONLookupDomain
+from sklearn.metrics import f1_score
 
 def get_data(file):
     f = open(file, "r")
@@ -36,8 +44,10 @@ class Corpus:  # input is dictionary with data
             sentences = []  # list of sentence objects
             for evaluation in self.dictionary[data]:  # sentence
                 sentence_obj = Sentence(evaluation[0])  # creates tokenobj
-                sentence_obj.gold_domain = evaluation[1][0]
-                self.all_tags.update({sentence_obj.gold_domain})
+                sentence_obj.gold_domain = evaluation[1]
+                if len(sentence_obj.gold_domain) != 0:
+                    for tag in sentence_obj.gold_domain:
+                        self.all_tags.update({tag})
                 sentences.append(sentence_obj)
             dialogue_obj = Dialogue(sentences)  # creates sentence object
             self.processed_corpus.append(dialogue_obj)
@@ -63,15 +73,14 @@ class Comparison:
         # for each domain find out the TPs FPs and FNs and save them in the self.comparison dictionary
         for dialogue in corpus.processed_corpus:
             for sentence in dialogue.sentences:
-                if sentence.gold_domain == self.domain and sentence.pred_domain == self.domain:  # TP
+                if self.domain in sentence.gold_domain and self.domain in sentence.pred_domain:  # TP
                     self.comparison['TP'] += 1
-                elif sentence.gold_domain != self.domain and sentence.pred_domain == self.domain:  # FP
+                elif self.domain not in sentence.gold_domain and self.domain in sentence.pred_domain:  # FP
                     self.comparison['FP'] += 1
-                elif sentence.gold_domain == self.domain and sentence.pred_domain != self.domain:  # FN
+                elif self.domain in sentence.gold_domain and self.domain not in sentence.pred_domain:  # FN
                     self.comparison['FN'] += 1
-                elif sentence.gold_domain != self.domain and sentence.pred_domain != self.domain:  #TN
+                elif self.domain not in sentence.gold_domain and self.domain not in sentence.pred_domain:  #TN
                     self.comparison['TN'] += 1
-#corpus[dialogue1[sentence1,sentence2], d2 [sentence1, sentence2]]
 
     def get_precision(self):
         self.precision = self.comparison['TP']/(self.comparison['TP'] + self.comparison['FP'])
@@ -125,7 +134,6 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
 
     def get_micro_fscore(self): # average TPs, FPs, FNs and TNs and compute P, R, F1
         add_results = {'TP': 0, 'FP': 0, 'FN': 0, 'TN': 0}
-        total = 0
         for result in self.results:  # adds all TPs... together
             add_results['TP'] += result.comparison['TP']
             add_results['FP'] += result.comparison['FP']
@@ -147,10 +155,38 @@ file = get_data(file)
 corpus = Corpus(file)
 corpus.create_objects()
 
+# BASELINE 1: only 1 keyword
+Hotel = JSONLookupDomain("Hotel")
+Attraction = JSONLookupDomain("Attraction")
+Hospital = JSONLookupDomain("Hospital")
+Police = JSONLookupDomain("Police")
+Restaurant = JSONLookupDomain("Restaurant")
+Taxi = JSONLookupDomain("Taxi")
+Train = JSONLookupDomain("Train")
+
+
+dt = DomainTracker([Hotel, Attraction, Hospital, Police, Restaurant, Taxi, Train])
+
 for dialogue in corpus.processed_corpus:
+    dt.dialog_start()
     for sentence in dialogue.sentences:
-        sentence.pred_domain = "Hotel"
+        try:
+            sentence.pred_domain = dt.select_domain(sentence.string)["predicted domain: "]
+        except:
+            sentence.pred_domain = []
+
 evaluation = Evaluator()
 evaluation.evaluation(corpus)
 print("micro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore, "accuracy: ", evaluation.accuracy)
+for result in evaluation.results:
+    print(result.domain, result.comparison, result.fscore)
 
+
+
+""" to test our evaluator
+data = {"x":[["h", [1]], ["i", [2]], ["j", [3]]]}
+corpus = Corpus(data)
+gold = []
+for dialogue in corpus.processed_corpus:
+    for i in range(len(gold)):
+        dialogue[i].pred_domain = [gold[i]]"""
