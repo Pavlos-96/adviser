@@ -158,14 +158,11 @@ corpus.create_objects()
 # BASELINE 1: only 1 keyword
 Hotel = JSONLookupDomain("Hotel")
 Attraction = JSONLookupDomain("Attraction")
-Hospital = JSONLookupDomain("Hospital")
-Police = JSONLookupDomain("Police")
 Restaurant = JSONLookupDomain("Restaurant")
 Taxi = JSONLookupDomain("Taxi")
 Train = JSONLookupDomain("Train")
 
-
-dt = DomainTracker([Hotel, Attraction, Hospital, Police, Restaurant, Taxi, Train])
+dt = DomainTracker([Hotel, Attraction, Restaurant, Taxi, Train])
 
 for dialogue in corpus.processed_corpus:
     dt.dialog_start()
@@ -177,8 +174,38 @@ for dialogue in corpus.processed_corpus:
 
 evaluation = Evaluator()
 evaluation.evaluation(corpus)
+print("\n\nBASELINE 1: only one keyword")
 print("micro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore, "accuracy: ", evaluation.accuracy)
 for result in evaluation.results:
+    print(result.domain, result.comparison, result.fscore)
+
+
+# BASELINE 2: multiple hand-picked keywords
+
+corpus2 = Corpus(file)
+corpus2.create_objects()
+
+Hotel2 = JSONLookupDomain("Hotel2")
+Attraction2 = JSONLookupDomain("Attraction2")
+Restaurant2 = JSONLookupDomain("Restaurant2")
+Taxi2 = JSONLookupDomain("Taxi2")
+Train2 = JSONLookupDomain("Train2")
+
+dt = DomainTracker([Hotel2, Attraction2, Restaurant2, Taxi2, Train2])
+
+for dialogue in corpus2.processed_corpus:
+    dt.dialog_start()
+    for sentence in dialogue.sentences:
+        try:
+            sentence.pred_domain = dt.select_domain(sentence.string)["predicted domain: "]
+        except:
+            sentence.pred_domain = []
+
+evaluation2 = Evaluator()
+evaluation2.evaluation(corpus2)
+print("\n\nBASELINE 2: multiple hand-picked keywords")
+print("micro_fscore: ", evaluation2.micro_fscore, "macro_fscore: ", evaluation2.macro_fscore, "accuracy: ", evaluation2.accuracy)
+for result in evaluation2.results:
     print(result.domain, result.comparison, result.fscore)
 
 

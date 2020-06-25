@@ -23,6 +23,7 @@ from services.service import PublishSubscribe
 from services.service import Service
 from utils.domain import Domain
 from typing import List
+from nltk.corpus import wordnet
 
 
 class DomainTracker(Service):
@@ -77,8 +78,13 @@ class DomainTracker(Service):
         active_domains = []
         for d in self.domains:
             for keyword in d.get_keyword():
-                if keyword in user_utterance:
+                """
+                if keyword in user.utterance:
                     active_domains.append(d)
+                    """
+                for synset in wordnet.synsets(keyword):
+                    if synset.lemmas()[0].name() in user_utterance:
+                        active_domains.append(d)
 
         # Even if no domain has been specified, we should be able to exit
         if "bye" in user_utterance and not self.current_domain:
