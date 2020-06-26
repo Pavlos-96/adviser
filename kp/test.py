@@ -116,10 +116,12 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
                 domain_comparison.get_comparison(corpus_obj)  # get {TP:x, FP:y,...}
                 if domain_comparison.comparison['TP'] == 0: # if TP=0, then F1=0
                     domain_comparison.fscore = 0
+                    domain_comparison.accuracy = 0
                 else:
                     domain_comparison.get_precision()
                     domain_comparison.get_recall()
                     domain_comparison.get_fscore()
+                    domain_comparison.get_accuracy()
                 self.results.append(domain_comparison) # append to list of comparison_objects
         self.get_macro_fscore()
         self.get_micro_fscore()
@@ -177,7 +179,7 @@ evaluation.evaluation(corpus)
 print("\n\nBASELINE 1: only one keyword")
 print("micro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore, "accuracy: ", evaluation.accuracy)
 for result in evaluation.results:
-    print(result.domain, result.comparison, result.fscore)
+    print(result.domain, result.comparison, "fscore: ", result.fscore, "accuracy: ", result.accuracy)
 
 
 # BASELINE 2: multiple hand-picked keywords
@@ -198,6 +200,7 @@ for dialogue in corpus2.processed_corpus:
     for sentence in dialogue.sentences:
         try:
             sentence.pred_domain = dt.select_domain(sentence.string)["predicted domain: "]
+            sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
         except:
             sentence.pred_domain = []
 

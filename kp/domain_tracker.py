@@ -79,7 +79,7 @@ class DomainTracker(Service):
         for d in self.domains:
             for keyword in d.get_keyword():
                 """
-                if keyword in user.utterance:
+                if keyword in user_utterance and d not in active_domains:
                     active_domains.append(d)
                     """
                 for synset in wordnet.synsets(keyword):
@@ -93,8 +93,8 @@ class DomainTracker(Service):
         # if there are active domains, use the first one
         elif active_domains:
             out_key = f"user_utterance/{active_domains[0].get_domain_name()}"
-            self.current_domain = active_domains[0]
-            return {out_key: user_utterance, "predicted domain: ": self.current_domain.get_domain_name()}
+            self.current_domain = active_domains#[0]
+            return {out_key: user_utterance, "predicted domain: ": [d.get_domain_name() for d in active_domains]} #self.current_domain.get_domain_name()}
 
         # if no domain is explicitely mentioned, assume the last one is still active
         elif self.current_domain:
