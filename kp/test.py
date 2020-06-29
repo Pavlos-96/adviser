@@ -107,25 +107,7 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
         self.micro_fscore = micro_fscore
         self.accuracy = accuracy
 
-    def evaluation(self, corpus_obj):
-        # create objects of class Comparison(), compute P, R, F1 for each comparison_obj
-        # and save all comparison_objects in self.results
-        for domain_tag in corpus_obj.all_tags: # for every tag encountered in the data
-            if domain_tag != "":
-                domain_comparison = Comparison(domain_tag)  # makes compariscon_obj for pos_tag
-                domain_comparison.get_comparison(corpus_obj)  # get {TP:x, FP:y,...}
-                if domain_comparison.comparison['TP'] == 0: # if TP=0, then F1=0
-                    domain_comparison.fscore = 0
-                    domain_comparison.accuracy = 0
-                else:
-                    domain_comparison.get_precision()
-                    domain_comparison.get_recall()
-                    domain_comparison.get_fscore()
-                    domain_comparison.get_accuracy()
-                self.results.append(domain_comparison) # append to list of comparison_objects
-        self.get_macro_fscore()
-        self.get_micro_fscore()
-        # compute macro and micro fscore and save inside a variable
+
 
 
     def get_macro_fscore(self):  # average fscores
@@ -151,72 +133,97 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
             self.accuracy = add_results['TP']/total
             self.micro_fscore = (2 * precision * recall)/(precision + recall)
 
-
-file = "clean_domain_data.json"
-file = get_data(file)
-corpus = Corpus(file)
-corpus.create_objects()
-
-# BASELINE 1: only 1 keyword
-Hotel = JSONLookupDomain("Hotel")
-Attraction = JSONLookupDomain("Attraction")
-Restaurant = JSONLookupDomain("Restaurant")
-Taxi = JSONLookupDomain("Taxi")
-Train = JSONLookupDomain("Train")
-
-dt = DomainTracker([Hotel, Attraction, Restaurant, Taxi, Train])
-
-for dialogue in corpus.processed_corpus:
-    dt.dialog_start()
-    for sentence in dialogue.sentences:
-        try:
-            sentence.pred_domain = dt.select_domain(sentence.string)["predicted domain: "]
-        except:
-            sentence.pred_domain = []
-
-evaluation = Evaluator()
-evaluation.evaluation(corpus)
-print("\n\nBASELINE 1: only one keyword")
-print("micro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore, "accuracy: ", evaluation.accuracy)
-for result in evaluation.results:
-    print(result.domain, result.comparison, "fscore: ", result.fscore, "accuracy: ", result.accuracy)
+    def evaluation(self, corpus_obj):
+        # create objects of class Comparison(), compute P, R, F1 for each comparison_obj
+        # and save all comparison_objects in self.results
+        for domain_tag in corpus_obj.all_tags:  # for every tag encountered in the data
+            if domain_tag != "":
+                domain_comparison = Comparison(domain_tag)  # makes compariscon_obj for pos_tag
+                domain_comparison.get_comparison(corpus_obj)  # get {TP:x, FP:y,...}
+                if domain_comparison.comparison['TP'] == 0:  # if TP=0, then F1=0
+                    domain_comparison.fscore = 0
+                    domain_comparison.accuracy = 0
+                else:
+                    domain_comparison.get_precision()
+                    domain_comparison.get_recall()
+                    domain_comparison.get_fscore()
+                    domain_comparison.get_accuracy()
+                self.results.append(domain_comparison)  # append to list of comparison_objects
+        self.get_macro_fscore()
+        self.get_micro_fscore()
+        print("\n\nmicro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore, "accuracy: ",
+              evaluation.accuracy)
+        for result in evaluation.results:
+            print(result.domain, result.comparison, "fscore: ", result.fscore)
+        # compute macro and micro fscore and save inside a variable
 
 
-# BASELINE 2: multiple hand-picked keywords
+def setup_domaintracker():
+    Hotel = JSONLookupDomain("Hotel")
+    Attraction = JSONLookupDomain("Attraction")
+    Restaurant = JSONLookupDomain("Restaurant")
+    Taxi = JSONLookupDomain("Taxi")
+    Train = JSONLookupDomain("Train")
+    dt = DomainTracker([Hotel, Attraction, Restaurant, Taxi, Train])
+    return dt
 
-corpus2 = Corpus(file)
+def setup_domaintracker_with_multiple_keywords():
+    Hotel2 = JSONLookupDomain("Hotel2")
+    Attraction2 = JSONLookupDomain("Attraction2")
+    Restaurant2 = JSONLookupDomain("Restaurant2")
+    Taxi2 = JSONLookupDomain("Taxi2")
+    Train2 = JSONLookupDomain("Train2")
+    dt = DomainTracker([Hotel2, Attraction2, Restaurant2, Taxi2, Train2])
+    return dt
+
+
+def tag(corpus, dt, multiple_keywords=0, wordnet=0, multiple_domains=0):
+    for dialogue in corpus.processed_corpus:
+        dt.dialog_start()
+        for sentence in dialogue.sentences:
+            if wordnet == 0 and multiple_domains == 0:
+                domain = dt.select_domain_without_wordnet(sentence.string)
+                if "predicted domain: " in domain and domain["predicted domain: "] != []:
+                    sentence.pred_domain = domain["predicted domain: "][0]
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+            elif wordnet == 1 and multiple_domains == 0:
+                domain = dt.select_domain_without_wordnet(sentence.string)
+                if "predicted domain: " in domain and domain["predicted domain: "] != []:
+                    sentence.pred_domain = domain["predicted domain: "][0]
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+            elif wordnet == 0 and multiple_domains == 1:
+                domain = dt.select_domain_without_wordnet(sentence.string)
+                if "predicted domain: " in domain:
+                    sentence.pred_domain = domain["predicted domain: "]
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+            elif wordnet == 1 and multiple_domains == 1:
+                domain = dt.select_domain_without_wordnet(sentence.string)
+                if "predicted domain: " in domain:
+                    sentence.pred_domain = domain["predicted domain: "]
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+
+
+data = get_data("clean_domain_data.json")
+
+# corpus with only one keyword
+corpus1 = Corpus(data)
+corpus1.create_objects()
+
+# corpus with multiple keywords
+corpus2 = Corpus(data)
 corpus2.create_objects()
 
-Hotel2 = JSONLookupDomain("Hotel2")
-Attraction2 = JSONLookupDomain("Attraction2")
-Restaurant2 = JSONLookupDomain("Restaurant2")
-Taxi2 = JSONLookupDomain("Taxi2")
-Train2 = JSONLookupDomain("Train2")
+# with one keyword
+dt1 = setup_domaintracker()
 
-dt = DomainTracker([Hotel2, Attraction2, Restaurant2, Taxi2, Train2])
+# with multiple keywords
+dt2 = setup_domaintracker_with_multiple_keywords()
 
-for dialogue in corpus2.processed_corpus:
-    dt.dialog_start()
-    for sentence in dialogue.sentences:
-        try:
-            sentence.pred_domain = dt.select_domain(sentence.string)["predicted domain: "]
-            sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
-        except:
-            sentence.pred_domain = []
+# tag(corpus2, dt2, 1, 1, 1)
 
-evaluation2 = Evaluator()
-evaluation2.evaluation(corpus2)
-print("\n\nBASELINE 2: multiple hand-picked keywords")
-print("micro_fscore: ", evaluation2.micro_fscore, "macro_fscore: ", evaluation2.macro_fscore, "accuracy: ", evaluation2.accuracy)
-for result in evaluation2.results:
-    print(result.domain, result.comparison, result.fscore)
-
-
-
-""" to test our evaluator
-data = {"x":[["h", [1]], ["i", [2]], ["j", [3]]]}
-corpus = Corpus(data)
-gold = []
-for dialogue in corpus.processed_corpus:
-    for i in range(len(gold)):
-        dialogue[i].pred_domain = [gold[i]]"""
+# evaluation = Evaluator()
+# evaluation.evaluation(corpus2)

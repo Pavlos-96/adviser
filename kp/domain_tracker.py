@@ -46,7 +46,7 @@ class DomainTracker(Service):
         self.current_domain = None
 
     @PublishSubscribe(sub_topics=["gen_user_utterance"], pub_topics=["user_utterance", "sys_utterance"])
-    def select_domain(self, gen_user_utterance: str = None) -> dict(user_utterance=str):
+    def select_domain_with_wordnet(self, gen_user_utterance: str = None) -> dict(user_utterance=str):
         """
             Determines which domain should currently be active. In general, if a keyword is mentioned, the domain
             will change, otherwise it is assumed that the previous domain is still active.
@@ -78,10 +78,64 @@ class DomainTracker(Service):
         active_domains = []
         for d in self.domains:
             for keyword in d.get_keyword():
-                """
                 if keyword in user_utterance and d not in active_domains:
                     active_domains.append(d)
-                    """
+
+        # Even if no domain has been specified, we should be able to exit
+        if "bye" in user_utterance and not self.current_domain:
+            return {"sys_utterance": "Thank you, goodbye."}
+
+        # if there are active domains, use the first one
+        elif active_domains:
+            out_key = f"user_utterance/{active_domains[0].get_domain_name()}"
+            # self.current_domain = active_domains[0]
+            return {out_key: user_utterance, "predicted domain: ": [d.get_domain_name() for d in active_domains]} #self.current_domain.get_domain_name()}
+
+        # if no domain is explicitely mentioned, assume the last one is still active
+        elif self.current_domain:
+            out_key = f"user_utterance/{self.current_domain.get_domain_name()}"
+            return {out_key: user_utterance}
+
+        # Otherwise ask the user what domain they want
+        else:
+            return {"sys_utterance": "Hello, please let me know how I can help you, I can discuss " +
+                    f"the following domains: {self.domains_to_str()}."}
+
+    @PublishSubscribe(sub_topics=["gen_user_utterance"], pub_topics=["user_utterance", "sys_utterance"])
+    def select_domain_without_wordnet(self, gen_user_utterance: str = None) -> dict(user_utterance=str):
+        """
+            Determines which domain should currently be active. In general, if a keyword is mentioned, the domain
+            will change, otherwise it is assumed that the previous domain is still active.
+
+            Args:
+                gen_user_utterance (str): the user utterance, before a domain has been determined
+
+            Returns:
+                (dict): A dictionary with "user_utterane" as a key and a string as the value with the
+                        selected domain appended to the end so the message can be properly routed.
+        """
+
+        self.turn += 1
+        if self.turn == 1 and self.greet_on_first_turn:
+            return {'sys_utterance': "Hello, please let me know how I can help you, I can discuss " +
+                    f"the following domains: {self.domains_to_str()}."}
+
+        # if there is only a single domain, simply route the message forward
+        if len(self.domains) == 1:
+            self.current_domain = self.domains[0]
+
+        # make sure the utterance is lowercase if there is one
+        user_utterance = gen_user_utterance
+        if user_utterance:
+            user_utterance = gen_user_utterance.strip().lower()
+
+        # perform keyword matching to see if any domains are explicitely made active
+        # active_domains = [d for d in self.domains if d.get_keyword() in user_utterance]
+        active_domains = []
+        for d in self.domains:
+            for keyword in d.get_keyword():
+                if keyword in user_utterance and d not in active_domains:
+                    active_domains.append(d)
                 for synset in wordnet.synsets(keyword):
                     if synset.lemmas()[0].name() in user_utterance:
                         active_domains.append(d)
@@ -93,7 +147,7 @@ class DomainTracker(Service):
         # if there are active domains, use the first one
         elif active_domains:
             out_key = f"user_utterance/{active_domains[0].get_domain_name()}"
-            self.current_domain = active_domains#[0]
+            # self.current_domain = active_domains[0]
             return {out_key: user_utterance, "predicted domain: ": [d.get_domain_name() for d in active_domains]} #self.current_domain.get_domain_name()}
 
         # if no domain is explicitely mentioned, assume the last one is still active
