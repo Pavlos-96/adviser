@@ -7,6 +7,7 @@ from domain_tracker import DomainTracker
 from utils.domain import Domain
 from utils.domain.jsonlookupdomain import JSONLookupDomain
 from sklearn.metrics import f1_score
+import random
 
 def get_data(file):
     f = open(file, "r")
@@ -16,10 +17,15 @@ def get_data(file):
     return dictionary
 
 class Sentence:
-    def __init__(self, string, pred_domain="", gold_domain=""):
+    def __init__(self, string, pred_domain="", gold_domain="", features=None,
+                 highest_score=None):
         self.string = string # "I want wifi"
         self.pred_domain = pred_domain # "Train"
         self.gold_domain = gold_domain # "Hotel"
+        if features is None:
+            features = []
+        self.features = features
+        self.highest_score = highest_score
 
 
 class Dialogue:
@@ -28,9 +34,70 @@ class Dialogue:
             sentences = list()
         self.sentences = sentences
 
+    def features(self, all_tags): # we get the features on sentence level, so we can use features like W-1 and W+1
+        for i in range(len(self.sentences)):
+            # find features:
+
+            # words
+            for word in self.sentences[i].string.split():
+                if f"{word} in sentence" not in self.sentences[i].features:
+                    self.sentences[i].features.append(f"{word} in sentence")
+
+            # question
+            if "?" in self.sentences[i].string:
+                self.sentences[i].features.append("? in sentence")
+
+            # label in sentence
+            for label in all_tags:
+                if label in self.sentences[i].string.split():
+                    if f"{label}-label in sentence" not in self.sentences[i].features:
+                        self.sentences[i].features.append(f"{label}-label in sentence")
+
+            # label in sentence-1
+            try:
+                for label in all_tags:
+                    if label in self.sentences[i-1].string.split():
+                        if f"{label}-label in sentence-1" not in self.sentences[i].features:
+                            self.sentences[i].features.append(f"{label}-label in sentence-1")
+            except:
+                self.sentences[i].features.append("dialogue-start")
+                pass
+
+            # label in sentence+1
+            try:
+                for label in all_tags:
+                    if label in self.sentences[i+1].string.split():
+                        if f"{label}-label in sentence+1" not in self.sentences[i].features:
+                            self.sentences[i].features.append(f"{label}-label in sentence+1")
+            except:
+                self.sentences[i].features.append("dialogue-end")
+                pass
+
+            # label in sentence-2
+            try:
+                for label in all_tags:
+                    if label in self.sentences[i-2].string.split():
+                        if f"{label}-label in sentence-2" not in self.sentences[i].features:
+                            self.sentences[i].features.append(f"{label}-label in sentence-2")
+            except:
+                pass
+
+            # label in sentence+2
+            try:
+                for label in all_tags:
+                    if label in self.sentences[i+2].string.split():
+                        if f"{label}-label in sentence+2" not in self.sentences[i].features:
+                            self.sentences[i].features.append(f"{label}-label in sentence+2")
+            except:
+                pass
+
+            # special feature
+            self.sentences[i].features.append("BIAS")
+
 
 class Corpus:  # input is dictionary with data
-    def __init__(self, dictionary, all_tags=None, processed_corpus=None):
+    def __init__(self, dictionary, all_tags=None, processed_corpus=None,
+                 all_features=None):
         self.dictionary = dictionary
         if all_tags is None:
             all_tags = set()
@@ -38,20 +105,38 @@ class Corpus:  # input is dictionary with data
         if processed_corpus is None:
             processed_corpus = list()
         self.processed_corpus = processed_corpus
+        if all_features is None:
+            all_features = set()
+        self.all_features = all_features  # set of feature types
 
-    def create_objects(self):  # make sentence + token objects, no input
+    def create_objects(self):  # make sentence + sentence objects, no input
         for data in self.dictionary:  # e.g ['We', 'are', 'happy', '.']
             sentences = []  # list of sentence objects
             for evaluation in self.dictionary[data]:  # sentence
-                sentence_obj = Sentence(evaluation[0])  # creates tokenobj
+                sentence_obj = Sentence(evaluation[0])  # creates sentence
                 sentence_obj.gold_domain = evaluation[1]
                 if len(sentence_obj.gold_domain) != 0:
                     for tag in sentence_obj.gold_domain:
                         self.all_tags.update({tag})
                 sentences.append(sentence_obj)
             dialogue_obj = Dialogue(sentences)  # creates sentence object
+            dialogue_obj.features(self.all_tags)
             self.processed_corpus.append(dialogue_obj)
+        self.get_features()  # collects all features
 
+    def get_features(self):  # retrieve all features from the sentences
+        for dialogue in self.processed_corpus:
+            for sentence in dialogue.sentences:
+                self.all_features.update(set(sentence.features))
+
+    def relabel(self):
+        for dialogue in self.processed_corpus:
+            for i in range(len(dialogue.sentences)):
+                if dialogue.sentences[i].pred_domain == ["no transition"]:
+                    try:
+                        dialogue.sentences[i].pred_domain = dialogue.sentences[i-1].pred_domain
+                    except:
+                        dialogue.sentences[i].pred_domain = []
 
 class Comparison:
     # objects of this class contain results of the evaluation of specific POS tags
@@ -151,13 +236,13 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
                 self.results.append(domain_comparison)  # append to list of comparison_objects
         self.get_macro_fscore()
         self.get_micro_fscore()
-        print("\n\nmicro_fscore: ", evaluation.micro_fscore, "macro_fscore: ", evaluation.macro_fscore, "accuracy: ",
-              evaluation.accuracy)
-        for result in evaluation.results:
-            print(result.domain, result.comparison, "fscore: ", result.fscore)
+        """print("\n\nmicro_fscore: ", self.micro_fscore, "macro_fscore: ", self.macro_fscore, "accuracy: ",
+              self.accuracy)
+        for result in self.results:
+            print(result.domain, result.comparison, "fscore: ", result.fscore)"""
         # compute macro and micro fscore and save inside a variable
 
-
+# BASELINE REQUIREMENTS
 def setup_domaintracker():
     Hotel = JSONLookupDomain("Hotel")
     Attraction = JSONLookupDomain("Attraction")
@@ -176,7 +261,7 @@ def setup_domaintracker_with_multiple_keywords():
     dt = DomainTracker([Hotel2, Attraction2, Restaurant2, Taxi2, Train2])
     return dt
 
-
+# BASELINE TAGGER
 def tag(corpus, dt, multiple_keywords=0, wordnet=0, multiple_domains=0):
     for dialogue in corpus.processed_corpus:
         dt.dialog_start()
@@ -207,8 +292,116 @@ def tag(corpus, dt, multiple_keywords=0, wordnet=0, multiple_domains=0):
                         sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
 
 
-data = get_data("clean_domain_data.json")
+class Perceptron():  # input = pos tag e.g. NN
+    def __init__(self, transition, weights=None):
+        self.transition = transition
+        if weights is None:
+            weights = dict()
+        self.weights = weights  # {feature1:0, feature2:0, ...}
 
+    def create_weights(self, all_features): # for each feature initialize weight with random values between -1 and 1
+        for feature in all_features:
+        # all_features = corpus_obj.all_features
+            self.weights[feature] = (random.random()*2-1)
+            # e.g {feature1:0.64, feature2:-0.32,...}
+
+    def assign_pred(self, sentence):  # method gets called for each sentence to assign sentence.pred_tag
+        competing_score = 0
+        for feature in sentence.features: # look at sentence_features
+            if feature in self.weights: # look if weights exist for the sentence_features
+                competing_score += self.weights[feature] # calculate score
+        if sentence.highest_score is None or competing_score >= sentence.highest_score:
+            # if score of this perceptron is higher
+            sentence.highest_score = competing_score # save score in sentence
+            sentence.pred_domain = [self.transition] # assign perceptrons' label tag to sentence
+
+
+class Multiclass_perceptron():
+    def __init__(self, iterations=30, perceptrons=None, evaluations=None):
+        self.iterations = iterations
+        if perceptrons is None:
+            perceptrons = dict()
+        self.perceptrons = perceptrons
+        # dict of POS tags to perceptron_objects, e.g. {NN:perceptron1, VB:perceptron2,...}
+        if evaluations is None:
+            evaluations = dict()
+        self.evaluations = evaluations
+        # dict of iterations to evaluations, e.g. {0:evaluation1, 1:evaluation2,...}
+
+
+    def start_perceptrons(self, corpus):  # create perceptron for each POS tag and initialize weights
+        for tag in corpus.all_tags: # for every seen tag
+            domain_perceptron = Perceptron(tag) # create perceptron_obj
+            domain_perceptron.create_weights(corpus.all_features)
+            # create dict from features to weights of 0, e.g. {feature1:0, feature2:0,...}
+            self.perceptrons[tag] = domain_perceptron # append to dict from POS tags to perceptron_objects
+            # e.g {NN:perceptron1, VB:perceptron2,...}
+        domain_perceptron = Perceptron("no transition")  # create perceptron_obj
+        domain_perceptron.create_weights(corpus.all_features)
+        # create dict from features to weights of 0, e.g. {feature1:0, feature2:0,...}
+        self.perceptrons["no transition"] = domain_perceptron  # append to dict from POS tags to perceptron_objects
+
+    def predict(self, corpus, training=True): # predict most likely POS tag for each sentence
+        if training is False:
+            for dialogue in corpus.processed_corpus:
+                for sentence in dialogue.sentences:
+                    sentence.highest_score = None
+        for tag in self.perceptrons:  # for each perceptron
+            for dialogue in corpus.processed_corpus:
+                for sentence in dialogue.sentences:  # for each sentence
+                    self.perceptrons[tag].assign_pred(sentence)
+                    # if score of this perceptron higher, assign its pred_tag to sentence
+        if training is False:
+            corpus.relabel()
+            evaluation = Evaluator()
+            evaluation.evaluation(corpus)
+            print("prediction:   macro:", evaluation.macro_fscore, "micro:", evaluation.micro_fscore, "accuracy:", evaluation.accuracy)
+            for result in evaluation.results:
+                print(result.domain, result.comparison, "fscore: ", result.fscore)
+
+    def adjust_weights(self, corpus):
+        for dialogue in corpus.processed_corpus:
+            for i in range(len(dialogue.sentences)): # for each sentence
+                dialogue.sentences[i].highest_score = None
+                if dialogue.sentences[i].gold_domain != dialogue.sentences[i-1].gold_domain:
+                    if "no transition" in dialogue.sentences[i].pred_domain:
+                        for feature in dialogue.sentences[i].features:
+                            self.perceptrons["no transition"].weights[feature] -= 1
+                            self.perceptrons[dialogue.sentences[i].gold_domain[0]].weights[feature] += 1
+                    else:
+                        for domain in dialogue.sentences[i].pred_domain:
+                            if domain not in dialogue.sentences[i].gold_domain:
+                                for feature in dialogue.sentences[i].features:
+                                    self.perceptrons[domain].weights[feature] -= 1
+                                    self.perceptrons[dialogue.sentences[i].gold_domain[0]].weights[feature] += 1
+                elif dialogue.sentences[i].gold_domain == dialogue.sentences[i-1].gold_domain:
+                    if "no transition" not in dialogue.sentences[i].pred_domain:
+                        for feature in dialogue.sentences[i].features:
+                            self.perceptrons[dialogue.sentences[i].pred_domain[0]].weights[feature] -= 1
+                            self.perceptrons["no transition"].weights[feature] += 1
+
+    def train(self, corpus):
+        self.start_perceptrons(corpus) # create perceptrons and their weights
+        for i in range(self.iterations):
+            self.predict(corpus) # predict label tag for each sentence
+            if i != self.iterations - 1:
+                self.adjust_weights(corpus) # adjust weights
+            corpus.relabel()
+            evaluation = Evaluator()
+            evaluation.evaluation(corpus) # do evaluation
+            print(i+1, ":  macro:", evaluation.macro_fscore, "micro:", evaluation.micro_fscore, "accuracy:", evaluation.accuracy)
+            self.evaluations[i] = evaluation # save evaluations by iterations
+
+
+    def test(self,corpus):
+        self.predict(corpus, False)
+
+
+train = get_data("train.txt")
+test = get_data("test.txt")
+
+# BASELINES
+"""
 # corpus with only one keyword
 corpus1 = Corpus(data)
 corpus1.create_objects()
@@ -227,3 +420,23 @@ dt2 = setup_domaintracker_with_multiple_keywords()
 
 # evaluation = Evaluator()
 # evaluation.evaluation(corpus2)
+"""
+
+# TAGGER
+corpus_obj = Corpus(train)
+corpus_obj.create_objects()
+
+# train classifier
+mc_perceptron = Multiclass_perceptron()
+print("starting to train")
+mc_perceptron.train(corpus_obj)
+
+# create test corpus:
+test_corpus = Corpus(test)
+test_corpus.create_objects()
+
+# use classifier trained classifier on test_set
+mc_perceptron.test(test_corpus)
+
+
+
