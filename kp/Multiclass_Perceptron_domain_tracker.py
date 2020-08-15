@@ -2,6 +2,10 @@ import ast
 import sys
 import nltk
 sys.path.insert(0, "/Users/pavlosmusenidis/Desktop/Computerlinguistik/2.Semester/SpokenDialogueSystems/adviser/adviser")
+from pathlib import Path
+
+
+DATA_DIRECTORY = "data"
 
 from services.service import Service, PublishSubscribe, DialogSystem
 from domain_tracker import DomainTracker
@@ -11,7 +15,7 @@ from sklearn.metrics import f1_score
 import random
 
 def get_data(file):
-    f = open(file, "r")
+    f = open(str(Path(DATA_DIRECTORY, file)), "r")
     contents = f.read()
     dictionary = ast.literal_eval(contents)
     f.close()
@@ -215,8 +219,6 @@ class Comparison:
         self.accuracy = accuracy
         self.fscore = fscore
 
-#[Train{'TP': 99, 'FP': 34, 'FN': 0, 'TN': 0},Hotel{'TP': 0, 'FP': 0, 'FN': 0, 'TN': 0},Attraction{'TP': 0, 'FP': 0, 'FN': 0, 'TN': 0}
-
     def get_comparison(self, corpus):
         # for each domain find out the TPs FPs and FNs and save them in the self.comparison dictionary
         for dialogue in corpus.processed_corpus:
@@ -298,67 +300,6 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
         self.get_macro_fscore()
         self.get_micro_fscore()
         # compute macro and micro fscore and save inside a variable
-
-# BASELINE REQUIREMENTS
-def setup_domaintracker():
-    Hotel = JSONLookupDomain("Hotel")
-    Attraction = JSONLookupDomain("Attraction")
-    Restaurant = JSONLookupDomain("Restaurant")
-    Taxi = JSONLookupDomain("Taxi")
-    Train = JSONLookupDomain("Train")
-    dt = DomainTracker([Hotel, Attraction, Restaurant, Taxi, Train])
-    return dt
-
-def setup_domaintracker_with_multiple_keywords():
-    Hotel2 = JSONLookupDomain("Hotel2")
-    Attraction2 = JSONLookupDomain("Attraction2")
-    Restaurant2 = JSONLookupDomain("Restaurant2")
-    Taxi2 = JSONLookupDomain("Taxi2")
-    Train2 = JSONLookupDomain("Train2")
-    dt = DomainTracker([Hotel2, Attraction2, Restaurant2, Taxi2, Train2])
-    return dt
-
-# BASELINE TAGGER
-def tag(corpus, dt, multiple_keywords=0, wordnet=0, multiple_domains=0):
-    for dialogue in corpus.processed_corpus:
-        dt.dialog_start()
-        for sentence in dialogue.sentences:
-            if wordnet == 0 and multiple_domains == 0:
-                domain = dt.select_domain_without_wordnet(sentence.string)
-                if "predicted domain: " in domain and domain["predicted domain: "] != []:
-                    if multiple_keywords == 0:
-                        sentence.pred_domain = [domain["predicted domain: "][0]]
-                        print(sentence.pred_domain, sentence.gold_domain)
-                    if multiple_keywords == 1:
-                        sentence.pred_domain = [[domain[:-1] for domain in domain["predicted domain: "]][0]]
-                        print(sentence.pred_domain, sentence.gold_domain)
-            elif wordnet == 1 and multiple_domains == 0:
-                domain = dt.select_domain_with_wordnet(sentence.string)
-                if "predicted domain: " in domain and domain["predicted domain: "] != []:
-                    if multiple_keywords == 0:
-                        sentence.pred_domain = [domain["predicted domain: "][0]]
-                        print(sentence.pred_domain, sentence.gold_domain)
-                    if multiple_keywords == 1:
-                        sentence.pred_domain = [[domain[:-1] for domain in domain["predicted domain: "]][0]]
-                        print(sentence.pred_domain, sentence.gold_domain)
-            elif wordnet == 0 and multiple_domains == 1:
-                domain = dt.select_domain_without_wordnet(sentence.string)
-                if "predicted domain: " in domain:
-                    if multiple_keywords == 0:
-                        sentence.pred_domain = domain["predicted domain: "]
-                        print(sentence.pred_domain, sentence.gold_domain)
-                    if multiple_keywords == 1:
-                        sentence.pred_domain = [domain[:-1] for domain in domain["predicted domain: "]]
-                        print(sentence.pred_domain, sentence.gold_domain)
-            elif wordnet == 1 and multiple_domains == 1:
-                domain = dt.select_domain_with_wordnet(sentence.string)
-                if "predicted domain: " in domain:
-                    if multiple_keywords == 0:
-                        sentence.pred_domain = domain["predicted domain: "]
-                        print(sentence.pred_domain, sentence.gold_domain)
-                    if multiple_keywords == 1:
-                        sentence.pred_domain = [domain[:-1] for domain in domain["predicted domain: "]]
-                        print(sentence.pred_domain, sentence.gold_domain)
 
 
 class Perceptron():  # input = pos tag e.g. NN

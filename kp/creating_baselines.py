@@ -5,6 +5,68 @@ sys.path.insert(0, "/Users/pavlosmusenidis/Desktop/Computerlinguistik/2.Semester
 from Multiclass_Perceptron_domain_tracker import *
 
 
+# BASELINE REQUIREMENTS
+def setup_domaintracker():
+    Hotel = JSONLookupDomain("Hotel")
+    Attraction = JSONLookupDomain("Attraction")
+    Restaurant = JSONLookupDomain("Restaurant")
+    Taxi = JSONLookupDomain("Taxi")
+    Train = JSONLookupDomain("Train")
+    dt = DomainTracker([Hotel, Attraction, Restaurant, Taxi, Train])
+    return dt
+
+def setup_domaintracker_with_multiple_keywords():
+    Hotel2 = JSONLookupDomain("Hotel2")
+    Attraction2 = JSONLookupDomain("Attraction2")
+    Restaurant2 = JSONLookupDomain("Restaurant2")
+    Taxi2 = JSONLookupDomain("Taxi2")
+    Train2 = JSONLookupDomain("Train2")
+    dt = DomainTracker([Hotel2, Attraction2, Restaurant2, Taxi2, Train2])
+    return dt
+
+# BASELINE TAGGER
+def tag(corpus, dt, multiple_keywords=0, wordnet=0, multiple_domains=0):
+    for dialogue in corpus.processed_corpus:
+        dt.dialog_start()
+        for sentence in dialogue.sentences:
+            if wordnet == 0 and multiple_domains == 0:
+                domain = dt.select_domain_without_wordnet(sentence.string)
+                if "predicted domain: " in domain and domain["predicted domain: "] != []:
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = [domain["predicted domain: "][0]]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [[domain[:-1] for domain in domain["predicted domain: "]][0]]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+            elif wordnet == 1 and multiple_domains == 0:
+                domain = dt.select_domain_with_wordnet(sentence.string)
+                if "predicted domain: " in domain and domain["predicted domain: "] != []:
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = [domain["predicted domain: "][0]]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [[domain[:-1] for domain in domain["predicted domain: "]][0]]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+            elif wordnet == 0 and multiple_domains == 1:
+                domain = dt.select_domain_without_wordnet(sentence.string)
+                if "predicted domain: " in domain:
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = domain["predicted domain: "]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [domain[:-1] for domain in domain["predicted domain: "]]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+            elif wordnet == 1 and multiple_domains == 1:
+                domain = dt.select_domain_with_wordnet(sentence.string)
+                if "predicted domain: " in domain:
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = domain["predicted domain: "]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+                    if multiple_keywords == 1:
+                        sentence.pred_domain = [domain[:-1] for domain in domain["predicted domain: "]]
+                        #print(sentence.pred_domain, sentence.gold_domain)
+
+
 if __name__ == "__main__":
     train = get_data("train.txt")
     test = get_data("test.txt")
