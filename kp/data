@@ -1,70 +1,46 @@
 BASELINE 1: only one keyword
-micro_fscore:  0.4037692662118577 macro_fscore:  0.37287152737796186 accuracy:  0.27088526813313923
-Restaurant {'TP': 3641, 'FP': 421, 'FN': 9138, 'TN': 36943} fscore:  0.43239712606139785 accuracy:  0.8093652154837165
-Attraction {'TP': 1125, 'FP': 87, 'FN': 7749, 'TN': 41182} fscore:  0.223081499107674 accuracy:  0.8437269409488862
-Taxi {'TP': 646, 'FP': 35, 'FN': 2877, 'TN': 46585} fscore:  0.30732635585157 accuracy:  0.941926091378657
-Hotel {'TP': 3463, 'FP': 571, 'FN': 10185, 'TN': 35924} fscore:  0.3916977717452777 accuracy:  0.7854934886225395
-Train {'TP': 4708, 'FP': 46, 'FN': 9006, 'TN': 36383} fscore:  0.5098548841238899 accuracy:  0.8194762977883254
+macro-averaged fscore:  0.3699553427732676
+micro-averaged fscore 0.4017790956263899
+accuracy:  0.2691429138941305
 
 
 BASELINE 2: multiple hand-picked keywords
-micro_fscore:  0.6046106593548842 macro_fscore:  0.5401636268720076 accuracy:  0.5123147797299723
-Restaurant {'TP': 5343, 'FP': 1989, 'FN': 7436, 'TN': 35375} 0.5313510019392372
-Attraction {'TP': 3250, 'FP': 2320, 'FN': 5624, 'TN': 38949} 0.45001384657989485
-Taxi {'TP': 663, 'FP': 435, 'FN': 2860, 'TN': 46185} 0.2869508764336724
-Hotel {'TP': 8926, 'FP': 1237, 'FN': 4722, 'TN': 35258} 0.7497375162739909
-Train {'TP': 7507, 'FP': 769, 'FN': 6207, 'TN': 35660} 0.6827648931332423
+macro-averaged fscore:  0.5442223167620471
+micro-averaged fscore 0.6155872141745481
+accuracy:  0.5106763333002284
 
 
 BASELINE 3: only one keyword (with wordnet --> synsets)
-micro_fscore:  0.40389901781601506 macro_fscore:  0.37344967648199223 accuracy:  0.2710448118381429
-Train {'TP': 4707, 'FP': 48, 'FN': 9007, 'TN': 36381} fscore:  0.5097189885754507 accuracy:  0.819416468898949
-Attraction {'TP': 1125, 'FP': 87, 'FN': 7749, 'TN': 41182} fscore:  0.223081499107674 accuracy:  0.8437269409488862
-Taxi {'TP': 655, 'FP': 43, 'FN': 2868, 'TN': 46577} fscore:  0.31035299692016105 accuracy:  0.9419460343417825
-Restaurant {'TP': 3641, 'FP': 421, 'FN': 9138, 'TN': 36943} fscore:  0.43239712606139785 accuracy:  0.8093652154837165
-Hotel {'TP': 3463, 'FP': 571, 'FN': 10185, 'TN': 35924} fscore:  0.3916977717452777 accuracy:  0.7854934886225395
+macro-averaged fscore:  0.3696921992599854
+micro-averaged fscore 0.4015713015120071
+accuracy:  0.26904359916575626
 
 
 BASELINE 4: multiple hand-picked keywords (with wordnet --> synsets)
-micro_fscore:  0.4329672792469744 macro_fscore:  0.3854743596148743 accuracy:  0.38527810462078455
-Train {'TP': 4661, 'FP': 3448, 'FN': 9053, 'TN': 32981} 0.42716400128304993
-Attraction {'TP': 2472, 'FP': 1734, 'FN': 6402, 'TN': 39535} 0.37798165137614675
-Taxi {'TP': 623, 'FP': 439, 'FN': 2900, 'TN': 46181} 0.2717557251908397
-Restaurant {'TP': 2550, 'FP': 1578, 'FN': 10229, 'TN': 35786} 0.301650204057491
-Hotel {'TP': 9013, 'FP': 10184, 'FN': 4635, 'TN': 26311} 0.5488202161668443
+macro-averaged fscore:  0.394876956420395
+micro-averaged fscore 0.44806470248411323
+accuracy:  0.385142516635217
 
 
 BASELINE 5: only one keyword but multiple domains assigned
-micro_fscore:  0.4309693907184759 macro_fscore:  0.43380330120788474 accuracy:  0.2959535727818439
-Taxi {'TP': 1470, 'FP': 85, 'FN': 2053, 'TN': 46535} fscore:  0.5789680976762505 accuracy:  0.957361944837764
-Hotel {'TP': 3463, 'FP': 571, 'FN': 10185, 'TN': 35924} fscore:  0.3916977717452777 accuracy:  0.7854934886225395
-Restaurant {'TP': 3932, 'FP': 642, 'FN': 8847, 'TN': 36722} fscore:  0.4531781248199159 accuracy:  0.8107612229024989
-Train {'TP': 4826, 'FP': 68, 'FN': 8888, 'TN': 36361} fscore:  0.5187016337059329 accuracy:  0.8213908222483697
-Attraction {'TP': 1149, 'FP': 124, 'FN': 7725, 'TN': 41145} fscore:  0.22647087809204694 accuracy:  0.8434676824282552
+macro-averaged fscore:  0.4307086646652606
+micro-averaged fscore 0.4281473973792804
+accuracy:  0.29367365180256233
 
 
 BASELINE 6: multiple hand-picked keywords but multiple domains assigned
-micro_fscore:  0.638098644211074 macro_fscore:  0.6123520478827656 accuracy:  0.5871008914504517
-Hotel {'TP': 8926, 'FP': 1237, 'FN': 4722, 'TN': 35258} 0.7497375162739909
-Attraction {'TP': 3536, 'FP': 3162, 'FN': 5338, 'TN': 38107} 0.4541484716157205
-Train {'TP': 8203, 'FP': 2036, 'FN': 5511, 'TN': 34393} 0.6849246440946855
-Restaurant {'TP': 7107, 'FP': 3011, 'FN': 5672, 'TN': 34353} 0.6207800148491068
-Taxi {'TP': 1667, 'FP': 848, 'FN': 1856, 'TN': 45772} 0.5521695925803245
+macro-averaged fscore:  0.6131561152240662
+micro-averaged fscore 0.643712910088456
+accuracy:  0.5709603734233787
 
 
 BASELINE 7: only one keyword but multiple domains assigned and wordnet
-micro_fscore:  0.4311983860901874 macro_fscore:  0.4342983320697746 accuracy:  0.29625271722872587
-Restaurant {'TP': 3932, 'FP': 642, 'FN': 8847, 'TN': 36722} fscore:  0.4531781248199159 accuracy:  0.8107612229024989
-Train {'TP': 4826, 'FP': 72, 'FN': 8888, 'TN': 36357} fscore:  0.5185901568880292 accuracy:  0.8213110503958678
-Attraction {'TP': 1149, 'FP': 124, 'FN': 7725, 'TN': 41145} fscore:  0.22647087809204694 accuracy:  0.8434676824282552
-Taxi {'TP': 1485, 'FP': 99, 'FN': 2038, 'TN': 46521} fscore:  0.5815547288036029 accuracy:  0.9573818878008895
-Hotel {'TP': 3463, 'FP': 571, 'FN': 10185, 'TN': 35924} fscore:  0.3916977717452777 accuracy:  0.7854934886225395
+macro-averaged fscore:  0.43119382549023627
+micro-averaged fscore 0.42836468885672935
+accuracy:  0.29397159598768496
 
 
 BASELINE 8: multiple hand-picked keywords but multiple domains assigned and wordnet
-micro_fscore:  0.5619205206186044 macro_fscore:  0.5487448919383301 accuracy:  0.6061464212352672
-Restaurant {'TP': 6982, 'FP': 3012, 'FN': 5797, 'TN': 34352} 0.6131822772581565
-Train {'TP': 9408, 'FP': 7600, 'FN': 4306, 'TN': 28829} 0.612460126293861
-Attraction {'TP': 3324, 'FP': 3546, 'FN': 5550, 'TN': 37723} 0.42225609756097565
-Taxi {'TP': 1667, 'FP': 905, 'FN': 1856, 'TN': 45715} 0.547005742411813
-Hotel {'TP': 9013, 'FP': 10184, 'FN': 4635, 'TN': 26311} 0.5488202161668443
+macro-averaged fscore:  0.5665824295375546
+micro-averaged fscore 0.5838790446841294
+accuracy:  0.6021451981328831

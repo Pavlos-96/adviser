@@ -1,5 +1,6 @@
 import ast
 import sys
+import nltk
 sys.path.insert(0, "/Users/pavlosmusenidis/Desktop/Computerlinguistik/2.Semester/SpokenDialogueSystems/adviser/adviser")
 
 from services.service import Service, PublishSubscribe, DialogSystem
@@ -34,31 +35,48 @@ class Dialogue:
             sentences = list()
         self.sentences = sentences
 
-    def features(self, all_tags): # we get the features on sentence level, so we can use features like W-1 and W+1
+    def features(self, all_tags, keywords): # we get the features on sentence level, so we can use features like W-1 and W+1
         for i in range(len(self.sentences)):
+            sentence = nltk.word_tokenize(self.sentences[i].string.lower())
+            try:
+                prev_sentence = nltk.word_tokenize(self.sentences[i-1].string.lower())
+            except:
+                pass
+            try:
+                next_sentence = nltk.word_tokenize(self.sentences[i+1].string.lower())
+            except:
+                pass
+            try:
+                pre_prev_sentence = nltk.word_tokenize(self.sentences[i - 1].string.lower())
+            except:
+                pass
+            try:
+                next_next_sentence = nltk.word_tokenize(self.sentences[i+1].string.lower())
+            except:
+                pass
+
             # find features:
 
             # words
-            for word in self.sentences[i].string.split():
+            for word in sentence:
                 if f"{word} in sentence" not in self.sentences[i].features:
-                    self.sentences[i].features.append(f"{word} in sentence")
+                    self.sentences[i].features.append(f"{word.lower()} in sentence")
 
             # question
-            if "?" in self.sentences[i].string:
+            if "?" in sentence:
                 self.sentences[i].features.append("? in sentence")
 
             # label in sentence
             for label in all_tags:
-                if label in self.sentences[i].string.split():
-                    if f"{label}-label in sentence" not in self.sentences[i].features:
-                        self.sentences[i].features.append(f"{label}-label in sentence")
+                if label.lower() in sentence:
+                    if f"{label.lower()}-label in sentence" not in self.sentences[i].features:
+                        self.sentences[i].features.append(f"{label.lower()}-label in sentence")
 
             # label in sentence-1
             try:
                 for label in all_tags:
-                    if label in self.sentences[i-1].string.split():
-                        if f"{label}-label in sentence-1" not in self.sentences[i].features:
-                            self.sentences[i].features.append(f"{label}-label in sentence-1")
+                    if label.lower() in prev_sentence:
+                        self.sentences[i].features.append(f"{label.lower()}-label in sentence-1")
             except:
                 self.sentences[i].features.append("dialogue-start")
                 pass
@@ -66,9 +84,8 @@ class Dialogue:
             # label in sentence+1
             try:
                 for label in all_tags:
-                    if label in self.sentences[i+1].string.split():
-                        if f"{label}-label in sentence+1" not in self.sentences[i].features:
-                            self.sentences[i].features.append(f"{label}-label in sentence+1")
+                    if label.lower() in next_sentence:
+                        self.sentences[i].features.append(f"{label.lower()}-label in sentence+1")
             except:
                 self.sentences[i].features.append("dialogue-end")
                 pass
@@ -76,18 +93,56 @@ class Dialogue:
             # label in sentence-2
             try:
                 for label in all_tags:
-                    if label in self.sentences[i-2].string.split():
-                        if f"{label}-label in sentence-2" not in self.sentences[i].features:
-                            self.sentences[i].features.append(f"{label}-label in sentence-2")
+                    if label.lower() in pre_prev_sentence:
+                        self.sentences[i].features.append(f"{label.lower()}-label in sentence-2")
             except:
                 pass
 
             # label in sentence+2
             try:
                 for label in all_tags:
-                    if label in self.sentences[i+2].string.split():
-                        if f"{label}-label in sentence+2" not in self.sentences[i].features:
-                            self.sentences[i].features.append(f"{label}-label in sentence+2")
+                    if label.lower() in next_next_sentence:
+                        self.sentences[i].features.append(f"{label.lower()}-label in sentence+2")
+            except:
+                pass
+
+            # keyword in sentence
+            for keyword in keywords:
+                if keyword.lower() in sentence:
+                    if f"{keyword.lower()}-keyword in sentence" not in self.sentences[i].features:
+                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence")
+
+            # keyword in sentence-1
+            try:
+                for keyword in keywords:
+                    if keyword.lower() in prev_sentence:
+                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-1")
+            except:
+                self.sentences[i].features.append("dialogue-start")
+                pass
+
+            # keyword in sentence+1
+            try:
+                for keyword in keywords:
+                    if keyword.lower() in next_sentence:
+                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+1")
+            except:
+                self.sentences[i].features.append("dialogue-end")
+                pass
+
+            # keyword in sentence-2
+            try:
+                for keyword in keywords:
+                    if keyword.lower() in pre_prev_sentence:
+                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-2")
+            except:
+                pass
+
+            # keyword in sentence+2
+            try:
+                for keyword in keywords:
+                    if keyword.lower() in next_next_sentence:
+                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+2")
             except:
                 pass
 
@@ -97,7 +152,7 @@ class Dialogue:
 
 class Corpus:  # input is dictionary with data
     def __init__(self, dictionary, all_tags=None, processed_corpus=None,
-                 all_features=None):
+                 all_features=None, keywords = None):
         self.dictionary = dictionary
         if all_tags is None:
             all_tags = set()
@@ -108,6 +163,14 @@ class Corpus:  # input is dictionary with data
         if all_features is None:
             all_features = set()
         self.all_features = all_features  # set of feature types
+        if keywords is None:
+            keywords = ["trip", "museum", "town", "visit", "city", "club", "see", "entertain",
+            "stay", "guest", "night", "wifi", "free", "parking", "room", "sleep",
+            "table", "grill", "mediterranean", "oriental", "asian", "chinese", "food", "indian", "eat", "dine"
+            "pick", "car", "cab",
+            "leaving", "depart", "arrive", "travel", "schedule",
+            "want", "need", "from", "to", "get", "leave", "book", "destination"]
+        self.keywords = keywords
 
     def create_objects(self):  # make sentence + sentence objects, no input
         for data in self.dictionary:  # e.g ['We', 'are', 'happy', '.']
@@ -120,7 +183,7 @@ class Corpus:  # input is dictionary with data
                         self.all_tags.update({tag})
                 sentences.append(sentence_obj)
             dialogue_obj = Dialogue(sentences)  # creates sentence object
-            dialogue_obj.features(self.all_tags)
+            dialogue_obj.features(self.all_tags, self.keywords)
             self.processed_corpus.append(dialogue_obj)
         self.get_features()  # collects all features
 
@@ -193,8 +256,6 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
         self.accuracy = accuracy
 
 
-
-
     def get_macro_fscore(self):  # average fscores
         add_fscores = 0
         for result in self.results:
@@ -236,10 +297,6 @@ class Evaluator:  # creates evaluation object+calculates macro/micro, no input
                 self.results.append(domain_comparison)  # append to list of comparison_objects
         self.get_macro_fscore()
         self.get_micro_fscore()
-        """print("\n\nmicro_fscore: ", self.micro_fscore, "macro_fscore: ", self.macro_fscore, "accuracy: ",
-              self.accuracy)
-        for result in self.results:
-            print(result.domain, result.comparison, "fscore: ", result.fscore)"""
         # compute macro and micro fscore and save inside a variable
 
 # BASELINE REQUIREMENTS
@@ -269,27 +326,39 @@ def tag(corpus, dt, multiple_keywords=0, wordnet=0, multiple_domains=0):
             if wordnet == 0 and multiple_domains == 0:
                 domain = dt.select_domain_without_wordnet(sentence.string)
                 if "predicted domain: " in domain and domain["predicted domain: "] != []:
-                    sentence.pred_domain = domain["predicted domain: "][0]
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = [domain["predicted domain: "][0]]
+                        print(sentence.pred_domain, sentence.gold_domain)
                     if multiple_keywords == 1:
-                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+                        sentence.pred_domain = [[domain[:-1] for domain in domain["predicted domain: "]][0]]
+                        print(sentence.pred_domain, sentence.gold_domain)
             elif wordnet == 1 and multiple_domains == 0:
-                domain = dt.select_domain_without_wordnet(sentence.string)
+                domain = dt.select_domain_with_wordnet(sentence.string)
                 if "predicted domain: " in domain and domain["predicted domain: "] != []:
-                    sentence.pred_domain = domain["predicted domain: "][0]
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = [domain["predicted domain: "][0]]
+                        print(sentence.pred_domain, sentence.gold_domain)
                     if multiple_keywords == 1:
-                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+                        sentence.pred_domain = [[domain[:-1] for domain in domain["predicted domain: "]][0]]
+                        print(sentence.pred_domain, sentence.gold_domain)
             elif wordnet == 0 and multiple_domains == 1:
                 domain = dt.select_domain_without_wordnet(sentence.string)
                 if "predicted domain: " in domain:
-                    sentence.pred_domain = domain["predicted domain: "]
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = domain["predicted domain: "]
+                        print(sentence.pred_domain, sentence.gold_domain)
                     if multiple_keywords == 1:
-                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+                        sentence.pred_domain = [domain[:-1] for domain in domain["predicted domain: "]]
+                        print(sentence.pred_domain, sentence.gold_domain)
             elif wordnet == 1 and multiple_domains == 1:
-                domain = dt.select_domain_without_wordnet(sentence.string)
+                domain = dt.select_domain_with_wordnet(sentence.string)
                 if "predicted domain: " in domain:
-                    sentence.pred_domain = domain["predicted domain: "]
+                    if multiple_keywords == 0:
+                        sentence.pred_domain = domain["predicted domain: "]
+                        print(sentence.pred_domain, sentence.gold_domain)
                     if multiple_keywords == 1:
-                        sentence.pred_domain = [domain[:-1] for domain in sentence.pred_domain]
+                        sentence.pred_domain = [domain[:-1] for domain in domain["predicted domain: "]]
+                        print(sentence.pred_domain, sentence.gold_domain)
 
 
 class Perceptron():  # input = pos tag e.g. NN
@@ -359,84 +428,62 @@ class Multiclass_perceptron():
             for result in evaluation.results:
                 print(result.domain, result.comparison, "fscore: ", result.fscore)
 
-    def adjust_weights(self, corpus):
+    def adjust_weights(self, corpus, iteration):
         for dialogue in corpus.processed_corpus:
             for i in range(len(dialogue.sentences)): # for each sentence
                 dialogue.sentences[i].highest_score = None
                 if dialogue.sentences[i].gold_domain != dialogue.sentences[i-1].gold_domain:
                     if "no transition" in dialogue.sentences[i].pred_domain:
                         for feature in dialogue.sentences[i].features:
-                            self.perceptrons["no transition"].weights[feature] -= 1
-                            self.perceptrons[dialogue.sentences[i].gold_domain[0]].weights[feature] += 1
+                            self.perceptrons["no transition"].weights[feature] -= 1 - iteration/self.iterations
+                            self.perceptrons[dialogue.sentences[i].gold_domain[0]].weights[feature] += 1 - iteration/self.iterations
                     else:
                         for domain in dialogue.sentences[i].pred_domain:
                             if domain not in dialogue.sentences[i].gold_domain:
                                 for feature in dialogue.sentences[i].features:
-                                    self.perceptrons[domain].weights[feature] -= 1
-                                    self.perceptrons[dialogue.sentences[i].gold_domain[0]].weights[feature] += 1
+                                    self.perceptrons[domain].weights[feature] -= 1 - iteration/self.iterations
+                                    self.perceptrons[dialogue.sentences[i].gold_domain[0]].weights[feature] += 1 - iteration/self.iterations
                 elif dialogue.sentences[i].gold_domain == dialogue.sentences[i-1].gold_domain:
                     if "no transition" not in dialogue.sentences[i].pred_domain:
                         for feature in dialogue.sentences[i].features:
-                            self.perceptrons[dialogue.sentences[i].pred_domain[0]].weights[feature] -= 1
-                            self.perceptrons["no transition"].weights[feature] += 1
+                            self.perceptrons[dialogue.sentences[i].pred_domain[0]].weights[feature] -= 1 - iteration/self.iterations
+                            self.perceptrons["no transition"].weights[feature] += 1 - iteration/self.iterations
 
     def train(self, corpus):
         self.start_perceptrons(corpus) # create perceptrons and their weights
         for i in range(self.iterations):
             self.predict(corpus) # predict label tag for each sentence
             if i != self.iterations - 1:
-                self.adjust_weights(corpus) # adjust weights
+                self.adjust_weights(corpus, i) # adjust weights
             corpus.relabel()
             evaluation = Evaluator()
             evaluation.evaluation(corpus) # do evaluation
             print(i+1, ":  macro:", evaluation.macro_fscore, "micro:", evaluation.micro_fscore, "accuracy:", evaluation.accuracy)
             self.evaluations[i] = evaluation # save evaluations by iterations
 
-
     def test(self,corpus):
         self.predict(corpus, False)
 
 
-train = get_data("train.txt")
-test = get_data("test.txt")
+if __name__ == "__main__":
+    train = get_data("train.txt")
+    test = get_data("test.txt")
 
-# BASELINES
-"""
-# corpus with only one keyword
-corpus1 = Corpus(data)
-corpus1.create_objects()
+    # TAGGER
+    corpus_obj = Corpus(train)
+    corpus_obj.create_objects()
 
-# corpus with multiple keywords
-corpus2 = Corpus(data)
-corpus2.create_objects()
+    # train classifier
+    mc_perceptron = Multiclass_perceptron()
+    print("starting to train")
+    mc_perceptron.train(corpus_obj)
 
-# with one keyword
-dt1 = setup_domaintracker()
+    # create test corpus:
+    test_corpus = Corpus(test)
+    test_corpus.create_objects()
 
-# with multiple keywords
-dt2 = setup_domaintracker_with_multiple_keywords()
-
-# tag(corpus2, dt2, 1, 1, 1)
-
-# evaluation = Evaluator()
-# evaluation.evaluation(corpus2)
-"""
-
-# TAGGER
-corpus_obj = Corpus(train)
-corpus_obj.create_objects()
-
-# train classifier
-mc_perceptron = Multiclass_perceptron()
-print("starting to train")
-mc_perceptron.train(corpus_obj)
-
-# create test corpus:
-test_corpus = Corpus(test)
-test_corpus.create_objects()
-
-# use classifier trained classifier on test_set
-mc_perceptron.test(test_corpus)
+    # use classifier trained classifier on test_set
+    mc_perceptron.test(test_corpus)
 
 
 

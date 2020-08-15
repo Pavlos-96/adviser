@@ -46,7 +46,7 @@ class DomainTracker(Service):
         self.current_domain = None
 
     @PublishSubscribe(sub_topics=["gen_user_utterance"], pub_topics=["user_utterance", "sys_utterance"])
-    def select_domain_with_wordnet(self, gen_user_utterance: str = None) -> dict(user_utterance=str):
+    def select_domain_without_wordnet(self, gen_user_utterance: str = None) -> dict(user_utterance=str):
         """
             Determines which domain should currently be active. In general, if a keyword is mentioned, the domain
             will change, otherwise it is assumed that the previous domain is still active.
@@ -102,7 +102,7 @@ class DomainTracker(Service):
                     f"the following domains: {self.domains_to_str()}."}
 
     @PublishSubscribe(sub_topics=["gen_user_utterance"], pub_topics=["user_utterance", "sys_utterance"])
-    def select_domain_without_wordnet(self, gen_user_utterance: str = None) -> dict(user_utterance=str):
+    def select_domain_with_wordnet(self, gen_user_utterance: str = None) -> dict(user_utterance=str):
         """
             Determines which domain should currently be active. In general, if a keyword is mentioned, the domain
             will change, otherwise it is assumed that the previous domain is still active.
@@ -134,10 +134,12 @@ class DomainTracker(Service):
         active_domains = []
         for d in self.domains:
             for keyword in d.get_keyword():
-                if keyword in user_utterance and d not in active_domains:
+                if d in active_domains:
+                    break
+                if keyword in user_utterance:
                     active_domains.append(d)
                 for synset in wordnet.synsets(keyword):
-                    if synset.lemmas()[0].name() in user_utterance:
+                    if synset.lemmas()[0].name() in user_utterance and d not in active_domains:
                         active_domains.append(d)
 
         # Even if no domain has been specified, we should be able to exit
