@@ -18,13 +18,15 @@ This contains all scripts.
 
 ### `creating_baselines.py`
 ##### Requirements
-Wordnet has to be installed. 
+NLTK and Wordnet must be installed. 
 
 ##### Usage
 ```sh
 $ python3 src/creating_baselines.py
 ```
 ### `Multiclass_Perceptron_domain_tracker.py`
+##### Requirements
+NLTK must be installed. 
 ##### Usage
 ```sh
 $ python3 src/Multiclass_Perceptron_domain_tracker.py
