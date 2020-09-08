@@ -29,8 +29,12 @@ $ python3 src/creating_baselines.py
 NLTK must be installed. 
 ##### Usage
 ```sh
-$ python3 src/Multiclass_Perceptron_domain_tracker.py
+$ python3 src/Multiclass_Perceptron_domain_tracker.py FS1
 ```
+```sh
+$ python3 src/Multiclass_Perceptron_domain_tracker.py FS2
+```
+Takes the argument "FS1" if the first feature set should be used and the argument "FS2" if the second feature set should be used. (Can also be run without argument, then the second feature set is used)
 ### `train_test_split.py`
 Creates a new train-test split (80/20). Using this script overwrites the train and test files we used to obtain our results.
 ##### Usage
