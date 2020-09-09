@@ -3,10 +3,12 @@ import sys
 import nltk
 sys.path.insert(0, "/Users/pavlosmusenidis/Desktop/Computerlinguistik/2.Semester/SpokenDialogueSystems/adviser/adviser")
 from pathlib import Path
+from nltk.corpus import wordnet
 
 
 DATA_DIRECTORY = "data"
 OUTPUT_DIRECTORY = "results"
+
 
 import random
 
@@ -45,7 +47,14 @@ class Dialogue:
             sentences = list()
         self.sentences = sentences
 
-    def features(self, all_tags, keywords):
+    def features(self, all_tags, keywords, generalizable=True):
+        """Converts the preprocessed text, so that sentences are objects
+        containing lists of token objects
+        Input:
+        all_tags: Set of all domains in the training data
+        keywords: List of keywords
+        generalizable: If True feature set 1 and if False feature set 2 is activated"""
+
         for i in range(len(self.sentences)):
             sentence = nltk.word_tokenize(self.sentences[i].string.lower())
             try:
@@ -57,7 +66,7 @@ class Dialogue:
             except:
                 pass
             try:
-                pre_prev_sentence = nltk.word_tokenize(self.sentences[i - 1].string.lower())
+                pre_prev_sentence = nltk.word_tokenize(self.sentences[i-1].string.lower())
             except:
                 pass
             try:
@@ -79,12 +88,21 @@ class Dialogue:
                 if label.lower() in sentence:
                     if f"{label.lower()}-label in sentence" not in self.sentences[i].features:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence")
+                for synset in wordnet.synsets(label):
+                    if synset.lemmas()[0].name() in sentence:
+                        if f"{label.lower()}-label in sentence" not in self.sentences[i].features:
+                            self.sentences[i].features.append(f"{label.lower()}-label in sentence")
 
             # label in sentence-1
             try:
                 for label in all_tags:
                     if label.lower() in prev_sentence:
-                        self.sentences[i].features.append(f"{label.lower()}-label in sentence-1")
+                        if f"{label.lower()}-label in sentence-1" not in self.sentences[i].features:
+                            self.sentences[i].features.append(f"{label.lower()}-label in sentence-1")
+                    for synset in wordnet.synsets(label):
+                        if synset.lemmas()[0].name() in prev_sentence:
+                            if f"{label.lower()}-label in sentence-1" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{label.lower()}-label in sentence-1")
             except:
                 self.sentences[i].features.append("dialogue-start")
                 pass
@@ -94,6 +112,10 @@ class Dialogue:
                 for label in all_tags:
                     if label.lower() in next_sentence:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence+1")
+                    for synset in wordnet.synsets(label):
+                        if synset.lemmas()[0].name() in next_sentence:
+                            if f"{label.lower()}-label in sentence+1" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{label.lower()}-label in sentence+1")
             except:
                 self.sentences[i].features.append("dialogue-end")
                 pass
@@ -103,6 +125,10 @@ class Dialogue:
                 for label in all_tags:
                     if label.lower() in pre_prev_sentence:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence-2")
+                    for synset in wordnet.synsets(label):
+                        if synset.lemmas()[0].name() in pre_prev_sentence:
+                            if f"{label.lower()}-label in sentence-2" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{label.lower()}-label in sentence-2")
             except:
                 pass
 
@@ -111,48 +137,81 @@ class Dialogue:
                 for label in all_tags:
                     if label.lower() in next_next_sentence:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence+2")
+                    for synset in wordnet.synsets(label):
+                        if synset.lemmas()[0].name() in next_next_sentence:
+                            if f"{label.lower()}-label in sentence+2" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{label.lower()}-label in sentence+2")
             except:
                 pass
 
-            # keyword in sentence
-            for keyword in keywords:
-                if keyword.lower() in sentence:
-                    if f"{keyword.lower()}-keyword in sentence" not in self.sentences[i].features:
-                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence")
-
-            # keyword in sentence-1
-            try:
+            if generalizable == False:
+                # keyword in sentence
                 for keyword in keywords:
-                    if keyword.lower() in prev_sentence:
-                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-1")
-            except:
-                self.sentences[i].features.append("dialogue-start")
-                pass
+                    if keyword.lower() in sentence:
+                        if f"{keyword.lower()}-keyword in sentence" not in self.sentences[i].features:
+                            self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence")
+                    """for synset in wordnet.synsets(keyword):
+                        if synset.lemmas()[0].name() in sentence:
+                            if f"{synset.lemmas()[0].name()} in sentence" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence")"""
 
-            # keyword in sentence+1
-            try:
-                for keyword in keywords:
-                    if keyword.lower() in next_sentence:
-                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+1")
-            except:
-                self.sentences[i].features.append("dialogue-end")
-                pass
+                # keyword in sentence-1
+                try:
+                    for keyword in keywords:
+                        if keyword.lower() in prev_sentence:
+                            if f"{keyword.lower()}-keyword in sentence-1" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-1")
+                        """for synset in wordnet.synsets(keyword):
+                            if synset.lemmas()[0].name() in prev_sentence:
+                                if f"{synset.lemmas()[0].name()} in sentence-1" not in self.sentences[i].features:
+                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence-1")"""
 
-            # keyword in sentence-2
-            try:
-                for keyword in keywords:
-                    if keyword.lower() in pre_prev_sentence:
-                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-2")
-            except:
-                pass
+                except:
+                    self.sentences[i].features.append("dialogue-start")
+                    pass
 
-            # keyword in sentence+2
-            try:
-                for keyword in keywords:
-                    if keyword.lower() in next_next_sentence:
-                        self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+2")
-            except:
-                pass
+                # keyword in sentence+1
+                try:
+                    for keyword in keywords:
+                        if keyword.lower() in next_sentence:
+                            if f"{keyword.lower()}-keyword in sentence+1" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+1")
+                        """for synset in wordnet.synsets(keyword):
+                            if synset.lemmas()[0].name() in next_sentence:
+                                if f"{synset.lemmas()[0].name()} in sentence+1" not in self.sentences[i].features:
+                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence+1")"""
+
+                except:
+                    self.sentences[i].features.append("dialogue-end")
+                    pass
+
+                # keyword in sentence-2
+                try:
+                    for keyword in keywords:
+                        if keyword.lower() in pre_prev_sentence:
+                            if f"{keyword.lower()}-keyword in sentence-2" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-2")
+                        """for synset in wordnet.synsets(keyword):
+                            if synset.lemmas()[0].name() in pre_prev_sentence:
+                                if f"{synset.lemmas()[0].name()} in sentence-2" not in self.sentences[i].features:
+                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence-2")"""
+
+                except:
+                    pass
+
+                # keyword in sentence+2
+                try:
+                    for keyword in keywords:
+                        if keyword.lower() in next_next_sentence:
+                            if f"{keyword.lower()}-keyword in sentence+2" not in self.sentences[i].features:
+                                self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+2")
+                        """for synset in wordnet.synsets(keyword):
+                            if synset.lemmas()[0].name() in next_next_sentence:
+                                if f"{synset.lemmas()[0].name()} in sentence+2" not in self.sentences[i].features:
+                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence+2")"""
+
+                except:
+                    pass
 
             # special feature
             self.sentences[i].features.append("BIAS")
@@ -186,9 +245,11 @@ class Corpus:
             "want", "need", "from", "to", "get", "leave", "book", "destination"]
         self.keywords = keywords
 
-    def create_objects(self):
+    def create_objects(self, generalizable):
         """Converts the preprocessed text, so that sentences are objects
-        containing lists of token objects"""
+        containing lists of token objects
+        Input:
+        generalizable: If True feature set 2 is activated"""
 
         for data in self.dictionary:
             sentences = []
@@ -200,7 +261,7 @@ class Corpus:
                         self.all_tags.update({tag})
                 sentences.append(sentence_obj)
             dialogue_obj = Dialogue(sentences)
-            dialogue_obj.features(self.all_tags, self.keywords)
+            dialogue_obj.features(self.all_tags, self.keywords, generalizable)
             self.processed_corpus.append(dialogue_obj)
         self.get_features()  # collects all features
 
@@ -494,11 +555,15 @@ class Multiclass_perceptron():
 if __name__ == "__main__":
     train = get_data("train.txt")
     test = get_data("test.txt")
-    f = open(str(Path(OUTPUT_DIRECTORY, "Multiclass_Perceptron_results.txt")), "w")
-
+    if sys.argv[1] == "FS2":
+        generalizable = False
+        f = open(str(Path(OUTPUT_DIRECTORY, "Multiclass_Perceptron_results_FS2.txt")), "w")
+    else:
+        generalizable = True
+        f = open(str(Path(OUTPUT_DIRECTORY, "Multiclass_Perceptron_results_FS1.txt")), "w")
     # TAGGER
     corpus_obj = Corpus(train)
-    corpus_obj.create_objects()
+    corpus_obj.create_objects(generalizable)
 
     # train classifier
     mc_perceptron = Multiclass_perceptron()
@@ -507,7 +572,7 @@ if __name__ == "__main__":
 
     # create test corpus:
     test_corpus = Corpus(test)
-    test_corpus.create_objects()
+    test_corpus.create_objects(generalizable)
 
     # use classifier trained classifier on test_set
     mc_perceptron.test(test_corpus, f)
