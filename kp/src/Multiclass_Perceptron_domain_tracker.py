@@ -88,10 +88,6 @@ class Dialogue:
                 if label.lower() in sentence:
                     if f"{label.lower()}-label in sentence" not in self.sentences[i].features:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence")
-                for synset in wordnet.synsets(label):
-                    if synset.lemmas()[0].name() in sentence:
-                        if f"{label.lower()}-label in sentence" not in self.sentences[i].features:
-                            self.sentences[i].features.append(f"{label.lower()}-label in sentence")
 
             # label in sentence-1
             try:
@@ -99,10 +95,6 @@ class Dialogue:
                     if label.lower() in prev_sentence:
                         if f"{label.lower()}-label in sentence-1" not in self.sentences[i].features:
                             self.sentences[i].features.append(f"{label.lower()}-label in sentence-1")
-                    for synset in wordnet.synsets(label):
-                        if synset.lemmas()[0].name() in prev_sentence:
-                            if f"{label.lower()}-label in sentence-1" not in self.sentences[i].features:
-                                self.sentences[i].features.append(f"{label.lower()}-label in sentence-1")
             except:
                 self.sentences[i].features.append("dialogue-start")
                 pass
@@ -112,10 +104,6 @@ class Dialogue:
                 for label in all_tags:
                     if label.lower() in next_sentence:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence+1")
-                    for synset in wordnet.synsets(label):
-                        if synset.lemmas()[0].name() in next_sentence:
-                            if f"{label.lower()}-label in sentence+1" not in self.sentences[i].features:
-                                self.sentences[i].features.append(f"{label.lower()}-label in sentence+1")
             except:
                 self.sentences[i].features.append("dialogue-end")
                 pass
@@ -125,10 +113,6 @@ class Dialogue:
                 for label in all_tags:
                     if label.lower() in pre_prev_sentence:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence-2")
-                    for synset in wordnet.synsets(label):
-                        if synset.lemmas()[0].name() in pre_prev_sentence:
-                            if f"{label.lower()}-label in sentence-2" not in self.sentences[i].features:
-                                self.sentences[i].features.append(f"{label.lower()}-label in sentence-2")
             except:
                 pass
 
@@ -137,10 +121,6 @@ class Dialogue:
                 for label in all_tags:
                     if label.lower() in next_next_sentence:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence+2")
-                    for synset in wordnet.synsets(label):
-                        if synset.lemmas()[0].name() in next_next_sentence:
-                            if f"{label.lower()}-label in sentence+2" not in self.sentences[i].features:
-                                self.sentences[i].features.append(f"{label.lower()}-label in sentence+2")
             except:
                 pass
 
@@ -150,10 +130,6 @@ class Dialogue:
                     if keyword.lower() in sentence:
                         if f"{keyword.lower()}-keyword in sentence" not in self.sentences[i].features:
                             self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence")
-                    """for synset in wordnet.synsets(keyword):
-                        if synset.lemmas()[0].name() in sentence:
-                            if f"{synset.lemmas()[0].name()} in sentence" not in self.sentences[i].features:
-                                self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence")"""
 
                 # keyword in sentence-1
                 try:
@@ -161,10 +137,6 @@ class Dialogue:
                         if keyword.lower() in prev_sentence:
                             if f"{keyword.lower()}-keyword in sentence-1" not in self.sentences[i].features:
                                 self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-1")
-                        """for synset in wordnet.synsets(keyword):
-                            if synset.lemmas()[0].name() in prev_sentence:
-                                if f"{synset.lemmas()[0].name()} in sentence-1" not in self.sentences[i].features:
-                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence-1")"""
 
                 except:
                     self.sentences[i].features.append("dialogue-start")
@@ -176,10 +148,6 @@ class Dialogue:
                         if keyword.lower() in next_sentence:
                             if f"{keyword.lower()}-keyword in sentence+1" not in self.sentences[i].features:
                                 self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+1")
-                        """for synset in wordnet.synsets(keyword):
-                            if synset.lemmas()[0].name() in next_sentence:
-                                if f"{synset.lemmas()[0].name()} in sentence+1" not in self.sentences[i].features:
-                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence+1")"""
 
                 except:
                     self.sentences[i].features.append("dialogue-end")
@@ -191,10 +159,6 @@ class Dialogue:
                         if keyword.lower() in pre_prev_sentence:
                             if f"{keyword.lower()}-keyword in sentence-2" not in self.sentences[i].features:
                                 self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-2")
-                        """for synset in wordnet.synsets(keyword):
-                            if synset.lemmas()[0].name() in pre_prev_sentence:
-                                if f"{synset.lemmas()[0].name()} in sentence-2" not in self.sentences[i].features:
-                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence-2")"""
 
                 except:
                     pass
@@ -205,10 +169,6 @@ class Dialogue:
                         if keyword.lower() in next_next_sentence:
                             if f"{keyword.lower()}-keyword in sentence+2" not in self.sentences[i].features:
                                 self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+2")
-                        """for synset in wordnet.synsets(keyword):
-                            if synset.lemmas()[0].name() in next_next_sentence:
-                                if f"{synset.lemmas()[0].name()} in sentence+2" not in self.sentences[i].features:
-                                    self.sentences[i].features.append(f"{synset.lemmas()[0].name()} in sentence+2")"""
 
                 except:
                     pass
