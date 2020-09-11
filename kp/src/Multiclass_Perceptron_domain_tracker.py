@@ -3,7 +3,6 @@ import sys
 import nltk
 sys.path.insert(0, "/Users/pavlosmusenidis/Desktop/Computerlinguistik/2.Semester/SpokenDialogueSystems/adviser/adviser")
 from pathlib import Path
-from nltk.corpus import wordnet
 
 
 DATA_DIRECTORY = "data"
@@ -25,7 +24,7 @@ class Sentence:
     """Objects are sentences.
     Contains variables for making and saving predictions.
     Input:
-    string: String of the sentence"""
+        string: String of the sentence"""
 
     def __init__(self, string, pred_domain="", gold_domain="", features=None,
                  highest_score=None):
@@ -51,9 +50,9 @@ class Dialogue:
         """Converts the preprocessed text, so that sentences are objects
         containing lists of token objects
         Input:
-        all_tags: Set of all domains in the training data
-        keywords: List of keywords
-        generalizable: If True feature set 1 and if False feature set 2 is activated"""
+            all_tags: Set of all domains in the training data
+            keywords: List of keywords
+            generalizable: If True feature set 1 and if False feature set 2 is activated"""
 
         for i in range(len(self.sentences)):
             sentence = nltk.word_tokenize(self.sentences[i].string.lower())
@@ -62,15 +61,7 @@ class Dialogue:
             except:
                 pass
             try:
-                next_sentence = nltk.word_tokenize(self.sentences[i+1].string.lower())
-            except:
-                pass
-            try:
                 pre_prev_sentence = nltk.word_tokenize(self.sentences[i-1].string.lower())
-            except:
-                pass
-            try:
-                next_next_sentence = nltk.word_tokenize(self.sentences[i+1].string.lower())
             except:
                 pass
 
@@ -99,28 +90,11 @@ class Dialogue:
                 self.sentences[i].features.append("dialogue-start")
                 pass
 
-            # label in sentence+1
-            try:
-                for label in all_tags:
-                    if label.lower() in next_sentence:
-                        self.sentences[i].features.append(f"{label.lower()}-label in sentence+1")
-            except:
-                self.sentences[i].features.append("dialogue-end")
-                pass
-
             # label in sentence-2
             try:
                 for label in all_tags:
                     if label.lower() in pre_prev_sentence:
                         self.sentences[i].features.append(f"{label.lower()}-label in sentence-2")
-            except:
-                pass
-
-            # label in sentence+2
-            try:
-                for label in all_tags:
-                    if label.lower() in next_next_sentence:
-                        self.sentences[i].features.append(f"{label.lower()}-label in sentence+2")
             except:
                 pass
 
@@ -142,33 +116,12 @@ class Dialogue:
                     self.sentences[i].features.append("dialogue-start")
                     pass
 
-                # keyword in sentence+1
-                try:
-                    for keyword in keywords:
-                        if keyword.lower() in next_sentence:
-                            if f"{keyword.lower()}-keyword in sentence+1" not in self.sentences[i].features:
-                                self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+1")
-
-                except:
-                    self.sentences[i].features.append("dialogue-end")
-                    pass
-
                 # keyword in sentence-2
                 try:
                     for keyword in keywords:
                         if keyword.lower() in pre_prev_sentence:
                             if f"{keyword.lower()}-keyword in sentence-2" not in self.sentences[i].features:
                                 self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence-2")
-
-                except:
-                    pass
-
-                # keyword in sentence+2
-                try:
-                    for keyword in keywords:
-                        if keyword.lower() in next_next_sentence:
-                            if f"{keyword.lower()}-keyword in sentence+2" not in self.sentences[i].features:
-                                self.sentences[i].features.append(f"{keyword.lower()}-keyword in sentence+2")
 
                 except:
                     pass
@@ -182,7 +135,7 @@ class Corpus:
     Includes variables with information on the corpus
     and methods to do operations on corpus level.
     Input:
-    dictionary: A dictionary containing the data"""
+        dictionary: A dictionary containing the data"""
 
     def __init__(self, dictionary, all_tags=None, processed_corpus=None,
                  all_features=None, keywords = None):
@@ -209,7 +162,7 @@ class Corpus:
         """Converts the preprocessed text, so that sentences are objects
         containing lists of token objects
         Input:
-        generalizable: If True feature set 2 is activated"""
+            generalizable: If True feature set 2 is activated"""
 
         for data in self.dictionary:
             sentences = []
@@ -246,7 +199,7 @@ class Corpus:
 class Comparison:
     """Objects of this class contain results of the evaluation of specific POS tags.
     Input:
-    domain = domain label"""
+        domain = domain label"""
 
     def __init__(self, domain,
                  comparison=None,
@@ -263,7 +216,7 @@ class Comparison:
     def get_comparison(self, corpus):
         """Finds out for each domain the TPs FPs and FNs and saves them in the self.comparison dictionary
         Input:
-        cropus_obj: Object of class Corpus"""
+            cropus_obj: Object of class Corpus"""
 
         for dialogue in corpus.processed_corpus:
             for sentence in dialogue.sentences:
@@ -301,6 +254,7 @@ class Comparison:
 class Evaluator:
     """Objects of this class contain the results of an evaluation and
     contain methods to calculate macro- and micro-averaged F1-Scores"""
+
     def __init__(self, results=None, macro_fscore="", micro_fscore="", accuracy=0):
         if results is None:
             results = []
@@ -340,7 +294,7 @@ class Evaluator:
     def evaluation(self, corpus_obj):
         """Does the evaluation and saves the results
         Input:
-        corpus_obj: Object of class Corpus"""
+            corpus_obj: Object of class Corpus"""
 
         for domain_tag in corpus_obj.all_tags:
             if domain_tag != "":
@@ -363,7 +317,7 @@ class Perceptron():
     """Objects of this class include variables where weights
     for each feature are stored and methods to adjust them.
     Input:
-    transition = transition tag"""
+        transition = transition tag"""
 
     def __init__(self, transition, weights=None):
         self.transition = transition
@@ -374,7 +328,7 @@ class Perceptron():
     def create_weights(self, all_features):
         """Initializes random weights for all features.
         Input:
-        all_features: List of all features"""
+            all_features: List of all features"""
 
         for feature in all_features:
             self.weights[feature] = (random.random()*2-1)
@@ -383,7 +337,7 @@ class Perceptron():
         """Calculates score for a sentence and assigns
         the transition label, if it is the highest score.
         Input:
-        sentence: Object of class Sentence"""
+            sentence: Object of class Sentence"""
 
         competing_score = 0
         for feature in sentence.features: # look at sentence_features
@@ -397,10 +351,23 @@ class Perceptron():
 
 class Multiclass_perceptron():
     """Object is the Multiclass Perceptron.
-    It contains variables storing perceptrons and evaluations"""
+    It contains variables storing perceptrons and evaluations
+    Input:
+        tags: Set of all domains in the training data
+        keywords: List of keywords
+        generalizable: If True feature set 1 and if False feature set 2 is activated"""
 
-    def __init__(self, iterations=40, perceptrons=None, evaluations=None):
+    def __init__(self, tags, keywords, generalizable, iterations=40, context=None, perceptrons=None, evaluations=None):
+        self.tags = tags
+        self.keywords = keywords
+        self.generelizable = generalizable
         self.iterations = iterations
+        if tags is None:
+            tags = set()
+        self.tags = tags
+        if context is None:
+            context = Dialogue([])
+        self.context = context
         if perceptrons is None:
             perceptrons = dict()
         self.perceptrons = perceptrons
@@ -427,9 +394,9 @@ class Multiclass_perceptron():
         """Assigns a transition label to each sentence in the corpus, by taking
         the transition label of the perceptron with the highest score.
         Input:
-        corpus: Object of class Corpus
-        f: file to save results
-        training: Boolean, to differentiates between training and testing"""
+            corpus: Object of class Corpus
+            f: file to save results
+            training: Boolean, to differentiates between training and testing"""
 
         if training is False:
             for dialogue in corpus.processed_corpus:
@@ -451,11 +418,52 @@ class Multiclass_perceptron():
             for result in evaluation.results:
                 print(result.domain, result.comparison, "fscore: ", result.fscore)
 
+    def domain_guesser(self):
+        """This activates the interactive version of the domain tracker."""
+
+        print("Talk to me about a topic \
+        and i will guess which topic you are talking about!")
+        print("type 'new' to start a new dialog or 'exit' to exit the domain guesser")
+        while True:
+            print(self.tags)
+            utterance = input()
+            if utterance == "new":
+                self.context = Dialogue()
+            elif utterance == "exit":
+                break
+            else:
+                self.predict_in_real_time(self, utterance)
+
+    def predict_in_real_time(self, utterance):
+        """Can be used for real-time predictions.
+        This could be the main function of the trained domain tracker
+        Input:
+            utterance: The utterance the domain shall be predicted for"""
+
+        if utterance == "new":
+            self.context = Dialogue()
+        sentence = Sentence(utterance)
+        self.context.sentences.append(sentence)
+        self.context.features(self.tags, self.keywords, self.generelizable)
+        utterance = self.context.sentences[-1]
+        for tag in self.tags:
+            self.perceptrons[tag].assign_pred(self.context.sentences[-1])
+        if "no transition" in utterance.pred_domain:
+            if len(self.context.sentences) >= 2:
+                utterance.pred_domain = [self.context.sentences[-2].pred_domain[0]]
+                domain = utterance.pred_domain[0]
+                print(domain)
+            else:
+                print("not found")
+        else:
+            domain = utterance.pred_domain[0]
+            print(domain)
+
 
     def adjust_weights(self, corpus, iteration):
         """Adjust weights, depending on the correctness of the prediction.
         Input:
-        corpus: Object of class Corpus"""
+            corpus: Object of class Corpus"""
 
         for dialogue in corpus.processed_corpus:
             for i in range(len(dialogue.sentences)): # for each sentence
@@ -486,8 +494,8 @@ class Multiclass_perceptron():
     def train(self, corpus, f):
         """Trains the Multiclass Perceptron.
         Input:
-        corpus: Object of class Corpus
-        f: file to save results"""
+            corpus: Object of class Corpus
+            f: file to save results"""
 
         self.start_perceptrons(corpus) # create perceptrons and their weights
         for i in range(self.iterations):
@@ -521,12 +529,13 @@ if __name__ == "__main__":
     else:
         generalizable = True
         f = open(str(Path(OUTPUT_DIRECTORY, "Multiclass_Perceptron_results_FS1.txt")), "w")
+
     # TAGGER
     corpus_obj = Corpus(train)
     corpus_obj.create_objects(generalizable)
 
     # train classifier
-    mc_perceptron = Multiclass_perceptron()
+    mc_perceptron = Multiclass_perceptron(corpus_obj.all_tags, corpus_obj.keywords, generalizable)
     print("starting to train")
     mc_perceptron.train(corpus_obj, f)
 

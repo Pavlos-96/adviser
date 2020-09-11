@@ -89,7 +89,7 @@ class DomainTracker(Service):
         elif active_domains:
             out_key = f"user_utterance/{active_domains[0].get_domain_name()}"
             # self.current_domain = active_domains[0]
-            return {out_key: user_utterance, "predicted domain: ": [d.get_domain_name() for d in active_domains]} #self.current_domain.get_domain_name()}
+            return {out_key: user_utterance, "predicted domain: ": [d.get_domain_name() for d in active_domains]}
 
         # if no domain is explicitely mentioned, assume the last one is still active
         elif self.current_domain:
@@ -150,7 +150,7 @@ class DomainTracker(Service):
         elif active_domains:
             out_key = f"user_utterance/{active_domains[0].get_domain_name()}"
             # self.current_domain = active_domains[0]
-            return {out_key: user_utterance, "predicted domain: ": [d.get_domain_name() for d in active_domains]} #self.current_domain.get_domain_name()}
+            return {out_key: user_utterance, "predicted domain: ": [d.get_domain_name() for d in active_domains]}
 
         # if no domain is explicitely mentioned, assume the last one is still active
         elif self.current_domain:
@@ -175,4 +175,5 @@ class DomainTracker(Service):
         elif len(self.domains) == 2:
             return " and ".join([d.get_display_name() for d in self.domains])
         else:
-            return ", ".join([d.get_display_name() for d in self.domains][:-1]) + f", and {self.domains[-1].get_display_name()}"
+            return ", ".join([d.get_display_name() for d in self.domains][:-1]) + \
+                   f", and {self.domains[-1].get_display_name()}"

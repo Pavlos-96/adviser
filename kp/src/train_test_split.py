@@ -6,7 +6,7 @@ from Multiclass_Perceptron_domain_tracker import get_data
 
 DATA_DIRECTORY = "data"
 
-data = get_data("clean_domain_data.json")
+data = get_data("data_we_used.json")
 keys = random.sample(data.keys(), len(data.keys()))
 test = {}
 
