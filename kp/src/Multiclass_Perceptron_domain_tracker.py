@@ -421,8 +421,7 @@ class Multiclass_perceptron():
     def domain_guesser(self):
         """This activates the interactive version of the domain tracker."""
 
-        print("Talk to me about a topic \
-        and i will guess which topic you are talking about!")
+        print("Talk to me about a topic and i will guess which topic you are talking about!")
         print("type 'new' to start a new dialog or 'exit' to exit the domain guesser")
         while True:
             print(self.tags)
@@ -432,7 +431,7 @@ class Multiclass_perceptron():
             elif utterance == "exit":
                 break
             else:
-                self.predict_in_real_time(self, utterance)
+                self.predict_in_real_time(utterance)
 
     def predict_in_real_time(self, utterance):
         """Can be used for real-time predictions.
