@@ -7,10 +7,14 @@ All outputs created by the scripts get saved here.
 #### kp/results/our_results/
 This contains the results we got by running the codes.
  comparable.
+#### kp/report/
+This contains everything used for the report.
+#### kp/report/literature/
+This contains literature, we use in the report.
+#### kp/report/files_for_graphs/
+This contains the files we used to construct the plots in the report.
 #### kp/data/
 This contains the data we used.
-#### kp/literature/
-This contains literature, we use in the report.
 #### kp/src/
 This contains all scripts.
 
