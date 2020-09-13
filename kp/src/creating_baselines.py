@@ -110,11 +110,11 @@ def evaluate(corpus1, corpus2, f, wordnet=0, multiple_domains=0):
         title1 = "BASELINE 3: one keyword, multiple assignments"
         title2 = "BASELINE 4: multiple keywords, multiple assignments"
     elif wordnet == 1 and multiple_domains == 0:
-        title1 = "BASELINE 5: one keyword + wordnet synsets"
-        title2 = "BASELINE 6: multiple keywords + wordnet synsets"
+        title1 = "BASELINE 5: one keyword, WordNet synsets"
+        title2 = "BASELINE 6: multiple keywords, WordNet synsets"
     elif wordnet == 1 and multiple_domains == 1:
-        title1 = "BASELINE 7: one keyword + wordnet synsets, multiple assignments"
-        title2 = "BASELINE 8: multiple keywords + wordnet synsets, multiple assignments"
+        title1 = "BASELINE 7: one keyword, WordNet synsets, multiple assignments"
+        title2 = "BASELINE 8: multiple keywords, WordNet synsets, multiple assignments"
 
     print(title1, "\nmacro-averaged fscore: ", evaluation1.macro_fscore,
           "\nmicro-averaged fscore", evaluation1.micro_fscore, "\naccuracy: ", evaluation1.accuracy, "\n")
